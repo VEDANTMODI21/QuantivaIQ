@@ -18,6 +18,90 @@ The system simulates a real-world analytics architecture similar to platforms us
 
 ---
 
+## Repository
+
+**GitHub:** https://github.com/VEDANTMODI21/QuantivaIQ
+
+---
+
+## Quick Start
+
+### Option A: Using Docker (Recommended)
+
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop)
+2. Ensure Docker daemon is running
+3. Clone the repository:
+   ```bash
+   git clone https://github.com/VEDANTMODI21/QuantivaIQ.git
+   cd QuantivaIQ
+   ```
+4. Install Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+5. Start PostgreSQL container:
+   ```bash
+   docker-compose up -d
+   ```
+6. Wait 10 seconds for PostgreSQL to be ready, then initialize the database:
+   ```bash
+   python python/db_setup.py
+   ```
+7. Seed initial data:
+   ```bash
+   python python/etl_pipeline.py
+   ```
+8. Start live data simulation:
+   ```bash
+   python python/live_data_generator.py
+   ```
+
+### Option B: Local PostgreSQL
+
+1. Install [PostgreSQL 15+](https://www.postgresql.org/download/)
+2. Create database and user:
+   ```sql
+   CREATE DATABASE quantivaiq;
+   CREATE USER postgres WITH PASSWORD 'postgres';
+   ALTER ROLE postgres SET client_encoding TO 'utf8';
+   ALTER ROLE postgres SET default_transaction_isolation TO 'read committed';
+   ALTER ROLE postgres SET default_transaction_deferrable TO on;
+   ALTER ROLE postgres SET timezone TO 'UTC';
+   GRANT ALL PRIVILEGES ON DATABASE quantivaiq TO postgres;
+   ```
+3. Clone and install:
+   ```bash
+   git clone https://github.com/VEDANTMODI21/QuantivaIQ.git
+   cd QuantivaIQ
+   pip install -r requirements.txt
+   ```
+4. Configure `.env` file (copy from `.env.example`)
+5. Initialize database schema:
+   ```bash
+   python python/db_setup.py
+   ```
+6. Run ETL pipeline:
+   ```bash
+   python python/etl_pipeline.py
+   ```
+7. Start live simulation:
+   ```bash
+   python python/live_data_generator.py
+   ```
+
+### Option C: In-Memory Demo (No Database Required)
+
+```bash
+git clone https://github.com/VEDANTMODI21/QuantivaIQ.git
+cd QuantivaIQ
+pip install -r requirements.txt
+python run_demo.py
+```
+
+This runs a complete analytics pipeline in-memory without needing PostgreSQL.
+
+---
+
 # Tech Stack
 
 | Layer | Technology |
