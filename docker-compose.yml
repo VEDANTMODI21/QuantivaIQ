@@ -20,6 +20,48 @@ services:
     networks:
       - quantivaiq-network
 
+  web:
+    build: .
+    container_name: quantivaiq-web
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app
+    networks:
+      - quantivaiq-network
+
+  simulator:
+    build: .
+    container_name: quantivaiq-simulator
+    command: ["python", "python/live_data_generator.py"]
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app
+    networks:
+      - quantivaiq-network
+
+  setup:
+    build: .
+    container_name: quantivaiq-setup
+    command: ["bash", "-lc", "python python/db_setup.py && python python/etl_pipeline.py"]
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    profiles:
+      - setup
+    volumes:
+      - .:/app
+    networks:
+      - quantivaiq-network
+
 volumes:
   postgres_data:
 

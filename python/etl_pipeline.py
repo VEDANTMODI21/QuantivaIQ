@@ -4,7 +4,7 @@ from faker import Faker
 from datetime import datetime, timedelta
 import random
 from config import NUM_CUSTOMERS, NUM_PRODUCTS, NUM_ORDERS, setup_logging, test_db_connection, is_sqlite
-from utils import get_engine, fetch_data, bulk_insert, execute_query
+from utils import get_engine, fetch_data, bulk_insert, execute_query, refresh_materialized_views
 
 logger = setup_logging("ETL_Pipeline")
 fake = Faker()
@@ -206,6 +206,10 @@ def run_pipeline():
     generate_categories_and_suppliers()
     generate_products(NUM_PRODUCTS)
     generate_orders(NUM_ORDERS)
+
+    if not is_sqlite():
+        refresh_materialized_views()
+        logger.info("Power BI materialized views refreshed.")
     
     logger.info("ETL Pipeline completed successfully.")
 

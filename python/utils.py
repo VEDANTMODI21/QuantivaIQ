@@ -2,9 +2,9 @@ import pandas as pd
 from sqlalchemy import text
 
 try:
-    from config import get_engine, setup_logging
+    from config import get_engine, setup_logging, is_sqlite
 except ImportError:
-    from .config import get_engine, setup_logging
+    from .config import get_engine, setup_logging, is_sqlite
 
 logger = setup_logging("Utils")
 
@@ -43,3 +43,25 @@ def bulk_insert(df, table_name, if_exists="append"):
     except Exception as e:
         logger.error(f"Error during bulk insert to {table_name}: {e}")
         raise
+
+
+def refresh_materialized_views():
+    """Refresh PostgreSQL materialized views used by Power BI dashboards."""
+    if is_sqlite():
+        logger.info("SQLite mode detected; skipping materialized view refresh.")
+        return
+
+    views = [
+        "mv_daily_revenue",
+        "mv_customer_kpis",
+        "mv_product_performance",
+        "mv_fraud_summary",
+        "mv_inventory_status",
+    ]
+
+    for view in views:
+        try:
+            execute_query(f"REFRESH MATERIALIZED VIEW {view}")
+            logger.info(f"Refreshed materialized view: {view}")
+        except Exception as exc:
+            logger.warning(f"Could not refresh {view}: {exc}")

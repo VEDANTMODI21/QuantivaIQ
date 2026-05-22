@@ -133,28 +133,40 @@ The dashboard shows:
 
 ### Power BI Live Integration
 
-Power BI can show live updates from QuantivaIQ when the backend database is running and the Python live simulation is active.
+This repository now supports a full PostgreSQL-backed analytics stack with live Power BI connectivity.
 
-1. Start PostgreSQL and initialize the database:
-   ```bash
-   python python/db_setup.py
+1. Ensure Docker Desktop is installed and running.
+2. Copy `.env.example` to `.env` and fill in your credentials.
+3. Start the local stack with Docker Compose:
+   ```powershell
+   docker compose up -d postgres
    ```
-2. Seed the warehouse content:
-   ```bash
-   python python/etl_pipeline.py
+4. Initialize the database and seed the warehouse:
+   ```powershell
+   docker compose --profile setup run --rm setup
    ```
-3. Start the live simulation engine:
-   ```bash
-   python python/live_data_generator.py
+5. Start the web dashboard and live simulator:
+   ```powershell
+   docker compose up -d web simulator
    ```
-4. Open Power BI Desktop.
-5. Connect to PostgreSQL using the Power BI PostgreSQL connector.
-6. Choose **DirectQuery** mode to receive live updates.
-7. Enable **Page Refresh** in Power BI and set a refresh interval matching the simulator (`5 seconds` is recommended).
+6. Open Power BI Desktop and connect to PostgreSQL at `localhost:5432` using **DirectQuery**.
+7. Enable **Page refresh** in Power BI and use a 5-second interval to see live simulation updates.
 
-Power BI live integration is best when your database is running on PostgreSQL, either via Docker or a local installation. The Flask dashboard is a separate interface and does not replace the Power BI experience.
+Alternatively, run the helper script from the repository root:
 
-For detailed Power BI connection and dashboard recommendations, see:
+```powershell
+./deploy.ps1
+```
+
+### What is now integrated
+
+- PostgreSQL data warehouse running in Docker
+- Python ETL pipeline loading analytics tables
+- Live data simulator updating the database continuously
+- Power BI-ready materialized views refreshed automatically
+- Flask dashboard available at `http://localhost:8000`
+
+For detailed Power BI connection instructions and DAX formulas, see:
 - `dashboards/powerbi_connection_guide.md`
 - `dashboards/dax_measures.md`
 

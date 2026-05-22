@@ -43,10 +43,16 @@ To see the `live_data_generator.py` updates in Power BI:
 The live updates in Power BI work only when the simulation engine is running:
 
 ```bash
+docker compose up -d simulator
+```
+
+or
+
+```bash
 python python/live_data_generator.py
 ```
 
-While it runs, the simulator inserts new sessions, orders, payments, and fraud events into PostgreSQL.
+While it runs, the simulator inserts new sessions, orders, payments, and fraud events into PostgreSQL. The repository also refreshes Power BI materialized views automatically after each live cycle.
 
 ## Step 5: Power BI Dashboard Layout
 Recommended tabs:

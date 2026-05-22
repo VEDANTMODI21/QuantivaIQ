@@ -5,7 +5,7 @@ from faker import Faker
 import pandas as pd
 from datetime import datetime
 from config import setup_logging, SIMULATION_INTERVAL, FRAUD_RATE, test_db_connection, is_sqlite
-from utils import get_engine, fetch_data, bulk_insert, execute_query
+from utils import get_engine, fetch_data, bulk_insert, execute_query, refresh_materialized_views
 
 logger = setup_logging("LiveSimulator")
 fake = Faker()
@@ -107,6 +107,9 @@ class LiveSimulator:
                     )
                     """
                 )
+                if not is_sqlite():
+                    refresh_materialized_views()
+                    logger.info("Power BI materialized views refreshed after live simulation cycle.")
                 logger.info(f"Inserted {num_orders} live orders.")
                 
         except Exception as e:
