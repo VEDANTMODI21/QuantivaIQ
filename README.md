@@ -41,7 +41,7 @@ The system simulates a real-world analytics architecture similar to platforms us
    ```
 5. Start PostgreSQL container:
    ```bash
-   docker-compose up -d
+   docker compose up -d postgres
    ```
 6. Wait 10 seconds for PostgreSQL to be ready, then initialize the database:
    ```bash
@@ -75,7 +75,7 @@ The system simulates a real-world analytics architecture similar to platforms us
    cd QuantivaIQ
    pip install -r requirements.txt
    ```
-4. Configure `.env` file (copy from `.env.example`)
+4. Configure `.env` file (copy from `.env.example`). If you use Docker Compose, set `DB_HOST=postgres` inside the `.env` so the app containers can resolve the database service. When connecting from Power BI Desktop on your host, keep `DB_HOST=localhost` for the host connection.
 5. Initialize database schema:
    ```bash
    python python/db_setup.py
@@ -100,9 +100,9 @@ python run_demo.py
 
 This runs a complete analytics pipeline in-memory without needing PostgreSQL.
 
-### Launch the Local Web Dashboard
+### Launch the Web Dashboard on the Network
 
-Once PostgreSQL and ETL are initialized, start the live dashboard with:
+Once PostgreSQL and ETL are initialized, start the dashboard with:
 
 ```bash
 python python/web_dashboard.py
@@ -111,14 +111,17 @@ python python/web_dashboard.py
 Then open your browser to:
 
 ```text
-http://localhost:8000
-```
-
-If you want to access it from another machine on the same network, use the host IP address instead of `localhost`:
-
-```text
 http://<your-machine-ip>:8000
 ```
+
+Use your host machine IP address instead of `localhost` to access the dashboard from another device on the same network.
+
+> Note: The Flask app binds to `0.0.0.0`, so it is reachable across the network whenever your machine firewall allows port `8000`.
+
+### Network deployment notes
+- If your host machine IP is `192.168.1.100`, access the dashboard at `http://192.168.1.100:8000`.
+- For Power BI Desktop on another network device, connect to PostgreSQL at `<host-ip>:5432`.
+- Ensure your OS firewall allows inbound traffic on ports `8000` and `5432`.
 
 The dashboard shows:
 - total customers
@@ -149,8 +152,10 @@ This repository now supports a full PostgreSQL-backed analytics stack with live 
    ```powershell
    docker compose up -d web simulator
    ```
-6. Open Power BI Desktop and connect to PostgreSQL at `localhost:5432` using **DirectQuery**.
+6. Open Power BI Desktop and connect to PostgreSQL at `localhost:5432` using **DirectQuery** (or use the host IP if Power BI is remote).
 7. Enable **Page refresh** in Power BI and use a 5-second interval to see live simulation updates.
+
+> If Power BI Desktop is on another machine, connect to `http://<host-ip>:5432` instead of `localhost`.
 
 Alternatively, run the helper script from the repository root:
 

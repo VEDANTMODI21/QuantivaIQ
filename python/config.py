@@ -1,9 +1,10 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, event
 from sqlalchemy.exc import OperationalError
 import logging
+import sqlite3
 
 # Load environment variables
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -29,10 +30,25 @@ else:
 
 # SQLAlchemy Connection String
 
+def _sqlite_configure(dbapi_con, connection_record):
+    if isinstance(dbapi_con, sqlite3.Connection):
+        cursor = dbapi_con.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL;")
+        cursor.execute("PRAGMA foreign_keys=ON;")
+        cursor.execute("PRAGMA busy_timeout=30000;")
+        cursor.close()
+
+
 def get_engine(echo=False):
     """Returns a SQLAlchemy engine instance."""
     if DB_DRIVER == "sqlite":
-        return create_engine(DATABASE_URL, echo=echo, connect_args={"check_same_thread": False})
+        engine = create_engine(
+            DATABASE_URL,
+            echo=echo,
+            connect_args={"check_same_thread": False, "timeout": 30},
+        )
+        event.listen(engine, "connect", _sqlite_configure)
+        return engine
     return create_engine(DATABASE_URL, echo=echo, pool_pre_ping=True)
 
 

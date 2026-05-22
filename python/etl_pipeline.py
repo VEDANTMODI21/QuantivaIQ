@@ -189,6 +189,91 @@ def update_order_totals():
     )
 
 
+def generate_customer_segments():
+    logger.info("Generating customer segments...")
+    customer_metrics = fetch_data(
+        """
+        SELECT
+            c.customer_id,
+            COUNT(o.order_id) AS total_orders,
+            COALESCE(SUM(o.total_amount), 0) AS monetary,
+            MAX(o.order_date) AS last_order_date
+        FROM customers c
+        LEFT JOIN orders o ON c.customer_id = o.customer_id AND o.status = 'Completed'
+        GROUP BY c.customer_id
+        """
+    )
+
+    if customer_metrics.empty:
+        logger.info("No customers found for segmentation generation.")
+        return
+
+    customer_metrics["last_order_date"] = pd.to_datetime(
+        customer_metrics["last_order_date"]
+    ).fillna(pd.Timestamp.now() - pd.Timedelta(days=999))
+    customer_metrics["recency"] = (
+        pd.Timestamp.now() - customer_metrics["last_order_date"]
+    ).dt.days.clip(lower=0)
+    customer_metrics["frequency"] = customer_metrics["total_orders"].fillna(0).astype(int)
+    customer_metrics["monetary"] = customer_metrics["monetary"].fillna(0.0)
+
+    def choose_segment(row):
+        if row["frequency"] >= 20 or row["monetary"] >= 5000:
+            return "Platinum"
+        if row["frequency"] >= 10 or row["monetary"] >= 2500:
+            return "Gold"
+        if row["frequency"] >= 4 or row["monetary"] >= 1000:
+            return "Silver"
+        return "Bronze"
+
+    customer_metrics["segment_name"] = customer_metrics.apply(choose_segment, axis=1)
+    customer_metrics["rfm_score"] = (
+        customer_metrics["recency"].rank(method="dense", ascending=False).astype(int).astype(str)
+        + "-"
+        + customer_metrics["frequency"].rank(method="dense", ascending=True).astype(int).astype(str)
+        + "-"
+        + customer_metrics["monetary"].rank(method="dense", ascending=True).astype(int).astype(str)
+    )
+
+    execute_query("DELETE FROM customer_segments")
+    bulk_insert(
+        customer_metrics[
+            ["customer_id", "segment_name", "rfm_score", "recency", "frequency", "monetary"]
+        ],
+        "customer_segments",
+        if_exists="append",
+    )
+    logger.info("Customer segments generated.")
+
+
+def generate_fraud_logs():
+    logger.info("Generating fraud logs...")
+    completed_orders = fetch_data(
+        "SELECT order_id, customer_id FROM orders WHERE status = 'Completed'"
+    )
+    if completed_orders.empty:
+        logger.info("No completed orders available for fraud log generation.")
+        return
+
+    sample_size = max(1, int(len(completed_orders) * 0.02))
+    fraud_orders = completed_orders.sample(min(sample_size, len(completed_orders)))
+
+    fraud_records = []
+    for _, row in fraud_orders.iterrows():
+        fraud_records.append({
+            "customer_id": int(row["customer_id"]),
+            "order_id": int(row["order_id"]),
+            "fraud_type": random.choice(["Payment Fraud", "Account Takeover", "Refund Abuse", "Promo Abuse"]),
+            "risk_score": round(random.uniform(65.0, 98.0), 2),
+            "detection_method": random.choice(["Rule Engine", "Anomaly Detection", "Behavioral Score"]),
+            "detected_at": datetime.now(),
+            "is_confirmed": random.random() < 0.25,
+        })
+
+    bulk_insert(pd.DataFrame(fraud_records), "fraud_logs", if_exists="append")
+    logger.info("Fraud logs generated.")
+
+
 def run_pipeline():
     logger.info("Starting ETL Pipeline...")
     
@@ -206,6 +291,8 @@ def run_pipeline():
     generate_categories_and_suppliers()
     generate_products(NUM_PRODUCTS)
     generate_orders(NUM_ORDERS)
+    generate_customer_segments()
+    generate_fraud_logs()
 
     if not is_sqlite():
         refresh_materialized_views()

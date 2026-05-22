@@ -12,8 +12,11 @@ This guide explains how to connect your local Power BI Desktop instance to the Q
 2. Click **Get Data** -> **More...**
 3. Search for **PostgreSQL database** and select it, then click **Connect**.
 4. Enter the Server and Database details:
-   - **Server**: `localhost` (or your DB_HOST)
+   - **Server**: `localhost` if Power BI Desktop is on the same host as the database
+   - **Server**: `<host-ip>` if Power BI Desktop is on another machine on your network
    - **Database**: `quantivaiq`
+
+> Note: If you deploy QuantivaIQ with Docker Compose, the application containers should use `DB_HOST=postgres` internally, while Power BI Desktop on the host machine connects to `localhost:5432` or `<host-ip>:5432`.
 5. **Data Connectivity mode**: Select **DirectQuery**! (This is critical for the real-time simulation to work).
 6. Click **OK**.
 7. Enter your credentials (User: `postgres`, Password: `your_password`).
@@ -54,7 +57,14 @@ python python/live_data_generator.py
 
 While it runs, the simulator inserts new sessions, orders, payments, and fraud events into PostgreSQL. The repository also refreshes Power BI materialized views automatically after each live cycle.
 
-## Step 5: Power BI Dashboard Layout
+> Note: For network deployments, keep the simulator and database on the same host, and connect Power BI from other machines using the host machine IP.
+
+## Step 5: Power BI Dashboard Files
+This repository provides the backend warehouse, ETL, live simulator, and connection documentation. The actual Power BI report file (`.pbix`) is not included here.
+
+Build your Power BI dashboard in Power BI Desktop using the recommended tables and views, then publish to Power BI Service if desired.
+
+## Step 6: Power BI Dashboard Layout
 Recommended tabs:
 - **Executive Dashboard**: revenue, growth, active customers.
 - **Customer Dashboard**: RFM segments, CLTV, customer behavior.
@@ -74,7 +84,10 @@ To see the `live_data_generator.py` in action:
 2. Go to the **Format** pane -> **Page refresh**.
 3. Turn it **On**.
 4. Set the refresh interval to **5 seconds** (or matching your `SIMULATION_INTERVAL`).
+### Power BI Dashboard Files
+This repository currently provides the backend warehouse, ETL, live simulator, and connection documentation. The Power BI report file itself (`.pbix`) is not included here.
 
+You can create the Power BI dashboard in Power BI Desktop by connecting to the PostgreSQL data warehouse and using the recommended tables/views.
 ## Step 5: Dashboard Blueprints
 You should build 4 separate tabs:
 

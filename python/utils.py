@@ -65,3 +65,61 @@ def refresh_materialized_views():
             logger.info(f"Refreshed materialized view: {view}")
         except Exception as exc:
             logger.warning(f"Could not refresh {view}: {exc}")
+
+
+def refresh_customer_segments():
+    """Recalculate customer segmentation and refresh the customer_segments table."""
+    logger.info("Refreshing customer segments...")
+    customer_metrics = fetch_data(
+        """
+        SELECT
+            c.customer_id,
+            COUNT(o.order_id) AS total_orders,
+            COALESCE(SUM(o.total_amount), 0) AS monetary,
+            MAX(o.order_date) AS last_order_date
+        FROM customers c
+        LEFT JOIN orders o ON c.customer_id = o.customer_id AND o.status = 'Completed'
+        GROUP BY c.customer_id
+        """
+    )
+
+    if customer_metrics.empty:
+        logger.info("No customers found for segmentation refresh.")
+        return
+
+    customer_metrics["last_order_date"] = pd.to_datetime(
+        customer_metrics["last_order_date"]
+    ).fillna(pd.Timestamp.now() - pd.Timedelta(days=999))
+    customer_metrics["recency"] = (
+        pd.Timestamp.now() - customer_metrics["last_order_date"]
+    ).dt.days.clip(lower=0)
+    customer_metrics["frequency"] = customer_metrics["total_orders"].fillna(0).astype(int)
+    customer_metrics["monetary"] = customer_metrics["monetary"].fillna(0.0)
+
+    def choose_segment(row):
+        if row["frequency"] >= 20 or row["monetary"] >= 5000:
+            return "Platinum"
+        if row["frequency"] >= 10 or row["monetary"] >= 2500:
+            return "Gold"
+        if row["frequency"] >= 4 or row["monetary"] >= 1000:
+            return "Silver"
+        return "Bronze"
+
+    customer_metrics["segment_name"] = customer_metrics.apply(choose_segment, axis=1)
+    customer_metrics["rfm_score"] = (
+        customer_metrics["recency"].rank(method="dense", ascending=False).astype(int).astype(str)
+        + "-"
+        + customer_metrics["frequency"].rank(method="dense", ascending=True).astype(int).astype(str)
+        + "-"
+        + customer_metrics["monetary"].rank(method="dense", ascending=True).astype(int).astype(str)
+    )
+
+    execute_query("DELETE FROM customer_segments")
+    bulk_insert(
+        customer_metrics[
+            ["customer_id", "segment_name", "rfm_score", "recency", "frequency", "monetary"]
+        ],
+        "customer_segments",
+        if_exists="append",
+    )
+    logger.info("Customer segmentation refresh completed.")
