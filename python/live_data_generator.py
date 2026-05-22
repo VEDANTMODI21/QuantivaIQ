@@ -4,7 +4,7 @@ import random
 from faker import Faker
 import pandas as pd
 from datetime import datetime
-from config import setup_logging, SIMULATION_INTERVAL, FRAUD_RATE
+from config import setup_logging, SIMULATION_INTERVAL, FRAUD_RATE, test_db_connection
 from utils import get_engine, fetch_data, bulk_insert
 
 logger = setup_logging("LiveSimulator")
@@ -96,6 +96,10 @@ class LiveSimulator:
             logger.error(f"Error during simulation cycle: {e}")
 
 def run_simulator():
+    if not test_db_connection():
+        logger.error("Unable to connect to PostgreSQL. Start the database and verify .env configuration before running live_data_generator.py.")
+        return
+
     simulator = LiveSimulator()
     
     # Schedule job

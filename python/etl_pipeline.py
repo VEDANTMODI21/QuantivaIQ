@@ -3,7 +3,7 @@ import numpy as np
 from faker import Faker
 from datetime import datetime, timedelta
 import random
-from config import NUM_CUSTOMERS, NUM_PRODUCTS, NUM_ORDERS, setup_logging
+from config import NUM_CUSTOMERS, NUM_PRODUCTS, NUM_ORDERS, setup_logging, test_db_connection
 from utils import get_engine, fetch_data, bulk_insert, execute_query
 
 logger = setup_logging("ETL_Pipeline")
@@ -173,6 +173,10 @@ def generate_orders(num_orders):
 def run_pipeline():
     logger.info("Starting ETL Pipeline...")
     
+    if not test_db_connection():
+        logger.error("Unable to connect to PostgreSQL. Run the database server and verify your .env settings before retrying.")
+        return
+
     # Check if data already exists
     count = fetch_data("SELECT COUNT(*) FROM customers").iloc[0,0]
     if count > 0:

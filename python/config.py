@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import OperationalError
 import logging
 
 # Load environment variables
@@ -16,9 +17,22 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 # SQLAlchemy Connection String
 DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-def get_engine():
+def get_engine(echo=False):
     """Returns a SQLAlchemy engine instance."""
-    return create_engine(DATABASE_URL)
+    return create_engine(DATABASE_URL, echo=echo, pool_pre_ping=True)
+
+def test_db_connection():
+    """Check whether the configured PostgreSQL database is reachable."""
+    try:
+        engine = get_engine()
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except OperationalError as exc:
+        logger = setup_logging("DBConnectionCheck")
+        logger.error("Unable to connect to PostgreSQL. Confirm the server is running and your .env values are correct.")
+        logger.debug(exc)
+        return False
 
 # Logging Configuration
 def setup_logging(name="QuantivaIQ"):

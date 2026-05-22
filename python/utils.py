@@ -1,6 +1,10 @@
 import pandas as pd
 from sqlalchemy import text
-from python.config import get_engine, setup_logging
+
+try:
+    from config import get_engine, setup_logging
+except ImportError:
+    from .config import get_engine, setup_logging
 
 logger = setup_logging("Utils")
 

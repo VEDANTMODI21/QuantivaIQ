@@ -1,8 +1,59 @@
 # QuantivaIQ — AI-Powered Retail Intelligence & Fraud Analytics Platform
 
+## Overview
+
 QuantivaIQ is an enterprise-grade end-to-end Business Analytics and Fraud Intelligence platform designed for modern retail and e-commerce ecosystems.
 
-## Features
+The platform performs:
+- real-time business analytics
+- fraud detection
+- customer intelligence
+- demand forecasting
+- KPI monitoring
+- executive reporting
+
+using advanced SQL, Python, Machine Learning, and Power BI.
+
+The system simulates a real-world analytics architecture similar to platforms used by Amazon, Flipkart, and Myntra.
+
+---
+
+# Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Database | PostgreSQL |
+| Backend Analytics | Python |
+| Data Processing | pandas, numpy |
+| Machine Learning | scikit-learn |
+| Dashboarding | Power BI |
+| Database ORM | SQLAlchemy |
+| Real-Time Simulation | faker, random, schedule |
+| IDE | VS Code |
+| Notebook Environment | Jupyter Notebook |
+| Version Control | Git & GitHub |
+
+---
+
+# System Architecture
+
+Historical Datasets / Simulated Live Data
+                ↓
+        Python ETL Pipelines
+                ↓
+      PostgreSQL Data Warehouse
+                ↓
+      Advanced SQL Analytics Layer
+                ↓
+     Machine Learning Intelligence
+                ↓
+    Power BI Real-Time Dashboards
+                ↓
+      Business Insights & Alerts
+
+---
+
+# Core Features
 
 - Real-time business analytics
 - Fraud detection engine
@@ -16,31 +67,265 @@ QuantivaIQ is an enterprise-grade end-to-end Business Analytics and Fraud Intell
 - Automated ETL pipelines
 - Real-time transaction simulation
 
-## Tech Stack
+---
 
-- **Database:** PostgreSQL
-- **Backend Analytics:** Python (pandas, numpy, scikit-learn)
-- **Dashboarding:** Power BI
-- **Database ORM:** SQLAlchemy
+# Enterprise Data Warehouse
 
-## Project Structure
+## Database Domains
 
-```
-QuantivaIQ/
-├── datasets/              # CSV exports & seed data
-├── sql/                   # PostgreSQL schema, procedures, queries
-├── python/                # ETL, Machine Learning, Simulation
-├── dashboards/            # Power BI connection guides & DAX
-├── notebooks/             # Interactive Jupyter notebooks
-├── reports/               # Generated reports and forecasts
-├── .env.example           # Environment template
-├── requirements.txt       # Python dependencies
-└── README.md              # Project documentation
-```
+### Customer Domain
+- customers
+- customer_sessions
+- customer_segments
 
-## Setup Instructions
+### Product Domain
+- products
+- categories
+- suppliers
+- inventory
 
-1. Install dependencies: `pip install -r requirements.txt`
-2. Copy `.env.example` to `.env` and configure your PostgreSQL database connection.
-3. Run `python/etl_pipeline.py` to seed initial data.
-4. Run `python/live_data_generator.py` for real-time simulation.
+### Sales Domain
+- orders
+- order_items
+- payments
+- refunds
+
+### Fraud Domain
+- fraud_logs
+- suspicious_transactions
+
+### Feedback Domain
+- reviews
+- ratings
+
+---
+
+# Advanced SQL Analytics
+
+## SQL Concepts Used
+
+- Complex JOINs
+- CTEs
+- Window Functions
+- Views
+- Materialized Views
+- Stored Procedures
+- Triggers
+- Transactions
+- Indexing
+- Query Optimization
+
+---
+
+# Business KPI Analytics
+
+## Revenue Metrics
+- Monthly Revenue Growth
+- Regional Revenue Trends
+- Product Category Performance
+- Profitability Analysis
+
+## Customer Metrics
+- Customer Retention Rate
+- Customer Churn Rate
+- Repeat Purchase Rate
+- Customer Lifetime Value (CLTV)
+
+## Inventory Metrics
+- Inventory Turnover
+- Low Stock Detection
+- Overstock Monitoring
+
+## Fraud Metrics
+- Fraud Transaction Ratio
+- Suspicious Refund Detection
+- High-Risk Customer Monitoring
+
+---
+
+# ETL Pipeline
+
+## Extract
+- Retail datasets
+- Transaction datasets
+- Simulated live data streams
+
+## Transform
+- Missing value handling
+- Duplicate removal
+- Data normalization
+- Outlier detection
+- Feature engineering
+
+## Load
+- Automated loading into PostgreSQL warehouse
+
+---
+
+# Real-Time Data Simulation
+
+A Python-based simulation engine continuously generates:
+- customer activity
+- orders
+- payments
+- refunds
+- inventory updates
+
+This creates a near real-time analytics environment.
+
+---
+
+# Fraud Detection Engine
+
+## Fraud Scenarios
+- abnormal transaction frequency
+- excessive refund requests
+- suspicious payment patterns
+- bot-generated transactions
+
+---
+
+## ML Algorithms Used
+- Isolation Forest
+- Z-Score Anomaly Detection
+- Clustering-Based Detection
+
+---
+
+# Customer Intelligence System
+
+## RFM Segmentation
+Customers classified into:
+- VIP Customers
+- Loyal Customers
+- At-Risk Customers
+- Inactive Customers
+
+---
+
+## Predictive Analytics
+- Customer Churn Prediction
+- Customer Lifetime Value Prediction
+
+Algorithms:
+- Logistic Regression
+- Random Forest
+
+---
+
+# Recommendation Engine
+
+Product recommendation system using:
+- Collaborative Filtering
+- Cosine Similarity
+
+Example:
+"Customers who bought X also bought Y"
+
+---
+
+# Demand Forecasting
+
+Forecasts:
+- future sales demand
+- seasonal trends
+- inventory requirements
+
+Models:
+- ARIMA
+- Linear Regression
+- Prophet
+
+---
+
+# Power BI Real-Time Dashboard
+
+## Dashboard Modules
+
+### Executive Dashboard
+- Revenue KPIs
+- Profit Analysis
+- Growth Trends
+
+### Customer Dashboard
+- Customer Segmentation
+- Churn Analytics
+- CLTV Insights
+
+### Fraud Dashboard
+- Suspicious Transactions
+- Fraud Heatmaps
+- Refund Abuse Monitoring
+
+### Inventory Dashboard
+- Stock Monitoring
+- Inventory Trends
+- Low Stock Alerts
+
+---
+
+# Dashboard Features
+
+- DirectQuery Integration
+- Auto Refresh
+- DAX Measures
+- Interactive Filters
+- Drill-Through Reports
+- KPI Cards
+- Forecast Visualizations
+- Geographic Analysis
+
+---
+
+# Real-Time Integration
+
+Python continuously inserts live transactional data into PostgreSQL.
+
+Power BI connects using:
+- DirectQuery
+- Auto Refresh
+
+This enables near real-time dashboard monitoring.
+
+---
+
+# Dataset Sources
+
+## Historical Datasets
+- E-commerce transaction datasets
+- Retail sales datasets
+- Customer behavior datasets
+
+Sources:
+- Kaggle
+- UCI Repository
+
+---
+
+# Project Structure
+
+project/
+│
+├── datasets/
+├── sql/
+│   ├── schema.sql
+│   ├── procedures.sql
+│   ├── analytics_queries.sql
+│
+├── python/
+│   ├── etl_pipeline.py
+│   ├── fraud_detection.py
+│   ├── forecasting.py
+│   ├── live_data_generator.py
+│
+├── dashboards/
+│   ├── quantivaiq_dashboard.pbix
+│
+├── notebooks/
+│   ├── analytics.ipynb
+│
+├── reports/
+│
+└── README.md
+
+---
