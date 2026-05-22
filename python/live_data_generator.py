@@ -4,8 +4,8 @@ import random
 from faker import Faker
 import pandas as pd
 from datetime import datetime
-from config import setup_logging, SIMULATION_INTERVAL, FRAUD_RATE, test_db_connection
-from utils import get_engine, fetch_data, bulk_insert
+from config import setup_logging, SIMULATION_INTERVAL, FRAUD_RATE, test_db_connection, is_sqlite
+from utils import get_engine, fetch_data, bulk_insert, execute_query
 
 logger = setup_logging("LiveSimulator")
 fake = Faker()
@@ -70,13 +70,16 @@ class LiveSimulator:
                         p = self.prod_df.sample(1).iloc[0]
                         # If fraud, maybe order a massive quantity
                         qty = random.randint(50, 100) if is_fraud else random.randint(1, 3)
-                        items.append({
+                        item = {
                             "order_id": oid,
                             "product_id": int(p['product_id']),
                             "quantity": qty,
                             "unit_price": float(p['price']),
                             "discount": 0.0
-                        })
+                        }
+                        if is_sqlite():
+                            item["line_total"] = qty * float(p['price'])
+                        items.append(item)
                         order_total += qty * float(p['price'])
                         
                     payments.append({
@@ -88,8 +91,22 @@ class LiveSimulator:
                         "transaction_ref": fake.uuid4()
                     })
 
-                bulk_insert(pd.DataFrame(items), "order_items")
+                items_df = pd.DataFrame(items)
+                if is_sqlite() and not items_df.empty:
+                    items_df['line_total'] = items_df['quantity'] * items_df['unit_price'] - items_df['discount']
+
+                bulk_insert(items_df, "order_items")
                 bulk_insert(pd.DataFrame(payments), "payments")
+                execute_query(
+                    """
+                    UPDATE orders
+                    SET total_amount = (
+                        SELECT COALESCE(SUM(quantity * unit_price - discount), 0)
+                        FROM order_items oi
+                        WHERE oi.order_id = orders.order_id
+                    )
+                    """
+                )
                 logger.info(f"Inserted {num_orders} live orders.")
                 
         except Exception as e:
@@ -97,7 +114,7 @@ class LiveSimulator:
 
 def run_simulator():
     if not test_db_connection():
-        logger.error("Unable to connect to PostgreSQL. Start the database and verify .env configuration before running live_data_generator.py.")
+        logger.error("Unable to connect to the configured database. Run db_setup.py and verify .env configuration before running live_data_generator.py.")
         return
 
     simulator = LiveSimulator()

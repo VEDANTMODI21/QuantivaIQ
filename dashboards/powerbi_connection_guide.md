@@ -17,6 +17,7 @@ This guide explains how to connect your local Power BI Desktop instance to the Q
 5. **Data Connectivity mode**: Select **DirectQuery**! (This is critical for the real-time simulation to work).
 6. Click **OK**.
 7. Enter your credentials (User: `postgres`, Password: `your_password`).
+8. If using Docker, ensure the PostgreSQL container is running and your `.env` file is configured for PostgreSQL mode.
 
 ## Step 2: Import Tables and Views
 Do NOT import the raw transactional tables (`orders`, `order_items`) if you only need high-level KPIs. Import the Materialized Views and highly indexed tables instead to ensure fast dashboard performance.
@@ -29,6 +30,32 @@ Recommended Tables/Views to load:
 - `mv_inventory_status`
 - `customer_segments`
 - `fraud_logs`
+
+## Step 3: Enable Live Refresh in Power BI
+To see the `live_data_generator.py` updates in Power BI:
+1. In Power BI Desktop, click the page background to clear all visuals.
+2. In the Format pane, open **Page refresh**.
+3. Turn **Page refresh** on.
+4. Set the refresh interval to **5 seconds** (or match your `SIMULATION_INTERVAL_SECONDS`).
+5. Save the report and keep Power BI Desktop open while simulation runs.
+
+## Step 4: Use the Python Live Data Simulator
+The live updates in Power BI work only when the simulation engine is running:
+
+```bash
+python python/live_data_generator.py
+```
+
+While it runs, the simulator inserts new sessions, orders, payments, and fraud events into PostgreSQL.
+
+## Step 5: Power BI Dashboard Layout
+Recommended tabs:
+- **Executive Dashboard**: revenue, growth, active customers.
+- **Customer Dashboard**: RFM segments, CLTV, customer behavior.
+- **Fraud & Security**: fraud rate, suspicious transactions, risk score.
+- **Inventory Health**: stock status, turnover, reorder risk.
+
+Use `dashboards/dax_measures.md` for ready-to-use DAX formulas.
 
 ## Step 3: Establish Relationships (Data Model)
 In the Power BI Model View, create the following relationships:

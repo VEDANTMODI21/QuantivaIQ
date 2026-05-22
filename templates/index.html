@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+  {% if not db_ok %}
+    <div class="alert">
+      <h2>Database unavailable</h2>
+      <p>The dashboard could not connect to PostgreSQL. Start the database and run the ETL pipeline, or use the in-memory demo.</p>
+      <ul>
+        <li>Run: <code>python python/db_setup.py</code></li>
+        <li>Then: <code>python python/etl_pipeline.py</code></li>
+        <li>Finally: <code>python python/web_dashboard.py</code></li>
+      </ul>
+    </div>
+  {% else %}
+    <div class="card-grid">
+      <div class="card"><h2>Total Customers</h2><p>{{ total_customers }}</p></div>
+      <div class="card"><h2>Total Orders</h2><p>{{ total_orders }}</p></div>
+      <div class="card"><h2>Total Revenue</h2><p>${{ '{:,.2f}'.format(total_revenue) }}</p></div>
+      <div class="card"><h2>Fraud Flags</h2><p>{{ fraud_cases }}</p></div>
+    </div>
+    <div class="section">
+      <div class="card">
+        <h2>Top Products by Revenue</h2>
+        <table>
+          <tr><th>Product</th><th>Revenue</th></tr>
+          {% for row in top_products %}
+            <tr><td>{{ row.product_name }}</td><td>${{ '{:,.2f}'.format(row.revenue) }}</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+    <div class="section">
+      <div class="card">
+        <h2>Revenue by Region</h2>
+        <table>
+          <tr><th>Region</th><th>Revenue</th></tr>
+          {% for row in revenue_by_region %}
+            <tr><td>{{ row.region }}</td><td>${{ '{:,.2f}'.format(row.revenue) }}</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+    <div class="section">
+      <div class="card">
+        <h2>Customer Segments</h2>
+        <table>
+          <tr><th>Segment</th><th>Customers</th></tr>
+          {% for row in segments %}
+            <tr><td>{{ row.segment_name }}</td><td>{{ row.customers }}</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

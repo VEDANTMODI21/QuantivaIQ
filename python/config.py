@@ -1,28 +1,47 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 import logging
 
 # Load environment variables
-load_dotenv()
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ENV_PATH = PROJECT_ROOT / ".env"
+load_dotenv(ENV_PATH)
 
 # Database Configuration
+DB_DRIVER = os.getenv("DB_DRIVER", "postgres").lower()
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "quantivaiq")
 DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+SQLITE_DB_PATH = os.getenv("SQLITE_DB_PATH", "quantivaiq.db")
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SQLITE_DB_FULL_PATH = PROJECT_ROOT / SQLITE_DB_PATH
+
+if DB_DRIVER == "sqlite":
+    DATABASE_URL = f"sqlite:///{SQLITE_DB_FULL_PATH}"
+else:
+    DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # SQLAlchemy Connection String
-DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 def get_engine(echo=False):
     """Returns a SQLAlchemy engine instance."""
+    if DB_DRIVER == "sqlite":
+        return create_engine(DATABASE_URL, echo=echo, connect_args={"check_same_thread": False})
     return create_engine(DATABASE_URL, echo=echo, pool_pre_ping=True)
 
+
+def is_sqlite():
+    return DB_DRIVER == "sqlite"
+
+
 def test_db_connection():
-    """Check whether the configured PostgreSQL database is reachable."""
+    """Check whether the configured database is reachable."""
     try:
         engine = get_engine()
         with engine.connect() as conn:
@@ -30,7 +49,7 @@ def test_db_connection():
         return True
     except OperationalError as exc:
         logger = setup_logging("DBConnectionCheck")
-        logger.error("Unable to connect to PostgreSQL. Confirm the server is running and your .env values are correct.")
+        logger.error("Unable to connect to the configured database. Confirm your .env values are correct.")
         logger.debug(exc)
         return False
 

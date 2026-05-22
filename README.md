@@ -100,6 +100,64 @@ python run_demo.py
 
 This runs a complete analytics pipeline in-memory without needing PostgreSQL.
 
+### Launch the Local Web Dashboard
+
+Once PostgreSQL and ETL are initialized, start the live dashboard with:
+
+```bash
+python python/web_dashboard.py
+```
+
+Then open your browser to:
+
+```text
+http://localhost:8000
+```
+
+If you want to access it from another machine on the same network, use the host IP address instead of `localhost`:
+
+```text
+http://<your-machine-ip>:8000
+```
+
+The dashboard shows:
+- total customers
+- total orders
+- total revenue
+- fraud flags
+- top products by revenue
+- revenue by region
+- customer segments
+
+> Note: The current project includes a Flask-based browser dashboard for local preview. Power BI integration is supported separately by connecting Power BI Desktop to the backend PostgreSQL database.
+
+### Power BI Live Integration
+
+Power BI can show live updates from QuantivaIQ when the backend database is running and the Python live simulation is active.
+
+1. Start PostgreSQL and initialize the database:
+   ```bash
+   python python/db_setup.py
+   ```
+2. Seed the warehouse content:
+   ```bash
+   python python/etl_pipeline.py
+   ```
+3. Start the live simulation engine:
+   ```bash
+   python python/live_data_generator.py
+   ```
+4. Open Power BI Desktop.
+5. Connect to PostgreSQL using the Power BI PostgreSQL connector.
+6. Choose **DirectQuery** mode to receive live updates.
+7. Enable **Page Refresh** in Power BI and set a refresh interval matching the simulator (`5 seconds` is recommended).
+
+Power BI live integration is best when your database is running on PostgreSQL, either via Docker or a local installation. The Flask dashboard is a separate interface and does not replace the Power BI experience.
+
+For detailed Power BI connection and dashboard recommendations, see:
+- `dashboards/powerbi_connection_guide.md`
+- `dashboards/dax_measures.md`
+
 ---
 
 # Tech Stack

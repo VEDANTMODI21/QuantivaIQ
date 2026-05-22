@@ -3,7 +3,7 @@ import numpy as np
 from faker import Faker
 from datetime import datetime, timedelta
 import random
-from config import NUM_CUSTOMERS, NUM_PRODUCTS, NUM_ORDERS, setup_logging, test_db_connection
+from config import NUM_CUSTOMERS, NUM_PRODUCTS, NUM_ORDERS, setup_logging, test_db_connection, is_sqlite
 from utils import get_engine, fetch_data, bulk_insert, execute_query
 
 logger = setup_logging("ETL_Pipeline")
@@ -163,18 +163,37 @@ def generate_orders(num_orders):
                     "status": "Processed"
                 })
 
-        bulk_insert(pd.DataFrame(items), "order_items", if_exists="append")
+        items_df = pd.DataFrame(items)
+        if is_sqlite() and not items_df.empty:
+            items_df['line_total'] = items_df['quantity'] * items_df['unit_price'] - items_df['discount']
+
+        bulk_insert(items_df, "order_items", if_exists="append")
         bulk_insert(pd.DataFrame(payments), "payments", if_exists="append")
         if refunds:
             bulk_insert(pd.DataFrame(refunds), "refunds", if_exists="append")
-        
+
+        update_order_totals()
         logger.info(f"Inserted order batch {i} to {i + batch_orders}")
+
+def update_order_totals():
+    logger.info("Updating order totals from order_items...")
+    execute_query(
+        """
+        UPDATE orders
+        SET total_amount = (
+            SELECT COALESCE(SUM(quantity * unit_price - discount), 0)
+            FROM order_items oi
+            WHERE oi.order_id = orders.order_id
+        )
+        """
+    )
+
 
 def run_pipeline():
     logger.info("Starting ETL Pipeline...")
     
     if not test_db_connection():
-        logger.error("Unable to connect to PostgreSQL. Run the database server and verify your .env settings before retrying.")
+        logger.error("Unable to connect to the configured database. Run db_setup.py and verify your .env settings before retrying.")
         return
 
     # Check if data already exists

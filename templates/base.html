@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QuantivaIQ Dashboard</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f8; color: #1f2937; }
+      .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+      .header { margin-bottom: 18px; }
+      .header h1 { margin: 0; font-size: 2rem; }
+      .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+      .card { background: white; border-radius: 12px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08); padding: 18px; }
+      .card h2 { margin: 0 0 8px; font-size: 1.1rem; color: #111827; }
+      .card p { margin: 0; font-size: 2rem; font-weight: bold; }
+      table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+      th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e5e7eb; }
+      th { background: #f9fafb; }
+      .alert { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 16px; border-radius: 10px; }
+      .section { margin-top: 24px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>QuantivaIQ Live Dashboard</h1>
+        <p>Backend analytics and live KPIs generated from PostgreSQL or the in-memory demo.</p>
+      </div>
+      {% block content %}{% endblock %}
+    </div>
+  </body>
+</html>
