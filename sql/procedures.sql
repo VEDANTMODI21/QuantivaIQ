@@ -118,6 +118,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_update_inventory_on_order ON order_items;
 CREATE TRIGGER trg_update_inventory_on_order
 AFTER INSERT ON order_items
 FOR EACH ROW
@@ -146,6 +147,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_flag_high_refund ON refunds;
 CREATE TRIGGER trg_flag_high_refund
 AFTER INSERT ON refunds
 FOR EACH ROW
@@ -164,6 +166,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_update_order_total ON order_items;
 CREATE TRIGGER trg_update_order_total
 AFTER INSERT OR UPDATE ON order_items
 FOR EACH ROW
@@ -173,6 +176,7 @@ EXECUTE FUNCTION fn_update_order_total();
 -- MATERIALIZED VIEWS
 -- ==========================================
 
+DROP MATERIALIZED VIEW IF EXISTS mv_daily_revenue CASCADE;
 CREATE MATERIALIZED VIEW mv_daily_revenue AS
 SELECT 
     DATE(order_date) AS order_date,
@@ -182,6 +186,7 @@ FROM orders
 WHERE status = 'Completed'
 GROUP BY DATE(order_date);
 
+DROP MATERIALIZED VIEW IF EXISTS mv_customer_kpis CASCADE;
 CREATE MATERIALIZED VIEW mv_customer_kpis AS
 SELECT 
     c.customer_id,
@@ -194,6 +199,7 @@ FROM customers c
 LEFT JOIN orders o ON c.customer_id = o.customer_id AND o.status = 'Completed'
 GROUP BY c.customer_id, c.name;
 
+DROP MATERIALIZED VIEW IF EXISTS mv_product_performance CASCADE;
 CREATE MATERIALIZED VIEW mv_product_performance AS
 SELECT 
     p.product_id,
@@ -206,6 +212,7 @@ JOIN categories c ON p.category_id = c.category_id
 LEFT JOIN order_items oi ON p.product_id = oi.product_id
 GROUP BY p.product_id, p.product_name, c.category_name;
 
+DROP MATERIALIZED VIEW IF EXISTS mv_fraud_summary CASCADE;
 CREATE MATERIALIZED VIEW mv_fraud_summary AS
 SELECT 
     fraud_type,
@@ -215,6 +222,7 @@ SELECT
 FROM fraud_logs
 GROUP BY fraud_type, DATE(detected_at);
 
+DROP MATERIALIZED VIEW IF EXISTS mv_inventory_status CASCADE;
 CREATE MATERIALIZED VIEW mv_inventory_status AS
 SELECT 
     i.warehouse_location,

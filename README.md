@@ -265,6 +265,18 @@ All three — `postgres`, `web`, `simulator` — should show status `Up`.
 
 ---
 
+### Manual Power BI Refresh
+
+If you need to refresh the Power BI materialized views without rerunning the entire ETL pipeline, use:
+
+```bash
+python python/refresh_powerbi_views.py
+```
+
+This script works only in PostgreSQL mode and is useful after data loads or direct database updates.
+
+---
+
 ### Connecting Power BI Desktop
 
 1. Open Power BI Desktop.
