@@ -478,7 +478,8 @@ project/
 │   ├── live_data_generator.py
 │
 ├── dashboards/
-│   ├── quantivaiq_dashboard.pbix
+│   ├── dax_measures.md
+│   ├── powerbi_connection_guide.md
 │
 ├── notebooks/
 │   ├── analytics.ipynb
@@ -486,5 +487,7 @@ project/
 ├── reports/
 │
 └── README.md
+
+> Note: Power BI report/template files are not included in this repository. Build the report locally using Power BI Desktop and connect it to the PostgreSQL data warehouse.
 
 ---
