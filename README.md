@@ -1,65 +1,172 @@
 # QuantivaIQ — AI-Powered Retail Intelligence & Fraud Analytics Platform
 
-## Overview
+> Enterprise-grade end-to-end Business Analytics and Fraud Intelligence platform for modern retail and e-commerce ecosystems — with live Power BI integration.
 
-QuantivaIQ is an enterprise-grade end-to-end Business Analytics and Fraud Intelligence platform designed for modern retail and e-commerce ecosystems.
-
-The platform performs:
-- real-time business analytics
-- fraud detection
-- customer intelligence
-- demand forecasting
-- KPI monitoring
-- executive reporting
-
-using advanced SQL, Python, Machine Learning, and Power BI.
-
-The system simulates a real-world analytics architecture similar to platforms used by Amazon, Flipkart, and Myntra.
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Power BI](https://img.shields.io/badge/Power%20BI-DirectQuery-F2C811?style=flat-square&logo=powerbi&logoColor=black)](https://powerbi.microsoft.com/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 ---
 
-## Repository
+## Table of Contents
 
-**GitHub:** https://github.com/VEDANTMODI21/QuantivaIQ
+- [Overview](#overview)
+- [System Architecture](#system-architecture)
+- [Tech Stack](#tech-stack)
+- [Quick Start](#quick-start)
+  - [Option A: Docker (Recommended)](#option-a-docker-recommended)
+  - [Option B: Local PostgreSQL](#option-b-local-postgresql)
+  - [Option C: In-Memory Demo](#option-c-in-memory-demo-no-database-required)
+- [Power BI Live Integration](#power-bi-live-integration)
+  - [Prerequisites](#prerequisites)
+  - [Environment Variables](#environment-variables)
+  - [Starting the Stack](#starting-the-stack)
+  - [Connecting Power BI Desktop](#connecting-power-bi-desktop)
+  - [Selecting Views and Tables](#selecting-views-and-tables)
+  - [Enabling Live Page Refresh](#enabling-live-page-refresh)
+- [DAX Measures Reference](#dax-measures-reference)
+  - [Revenue and Sales](#revenue--sales-measures)
+  - [Customer and Retention](#customer--retention-measures)
+  - [Fraud and Risk](#fraud--risk-measures)
+  - [Inventory and Products](#inventory--product-measures)
+  - [Formatting Helpers](#formatting--ui-helpers)
+- [Recommended Dashboard Tabs](#recommended-dashboard-tabs)
+- [Core Features](#core-features)
+- [Enterprise Data Warehouse](#enterprise-data-warehouse)
+- [Advanced SQL Analytics](#advanced-sql-analytics)
+- [ETL Pipeline](#etl-pipeline)
+- [Fraud Detection Engine](#fraud-detection-engine)
+- [Customer Intelligence System](#customer-intelligence-system)
+- [Demand Forecasting](#demand-forecasting)
+- [Project Structure](#project-structure)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Overview
+
+QuantivaIQ simulates a real-world analytics architecture similar to platforms used by Amazon, Flipkart, and Myntra. It performs:
+
+- **Real-time business analytics** — revenue, orders, regional trends
+- **Fraud detection** — ML-based anomaly detection on live transactions
+- **Customer intelligence** — RFM segmentation, churn prediction, CLTV
+- **Demand forecasting** — ARIMA, Prophet, Linear Regression
+- **KPI monitoring** — live Power BI dashboards with DirectQuery + auto-refresh
+- **Executive reporting** — automated ETL into a structured PostgreSQL warehouse
+
+---
+
+## System Architecture
+
+```
+Historical Datasets / Simulated Live Data
+                ↓
+        Python ETL Pipelines
+     (etl_pipeline.py, db_setup.py)
+                ↓
+      PostgreSQL Data Warehouse
+       (Docker or Local — port 5432)
+                ↓
+      Advanced SQL Analytics Layer
+       (Materialized Views — mv_*)
+                ↓
+     Machine Learning Intelligence
+   (fraud_detection.py, forecasting.py)
+                ↓
+    Power BI Real-Time Dashboards
+     (DirectQuery + 5s Page Refresh)
+                ↓
+      Business Insights & Alerts
+```
+
+| Layer | Component | Role |
+|---|---|---|
+| Simulation | `live_data_generator.py` | Inserts orders, payments, fraud events every N seconds |
+| ETL | `etl_pipeline.py` | Loads, transforms, normalises data into warehouse tables |
+| Warehouse | PostgreSQL (Docker) | Source of truth — all analytics views live here |
+| Views | `mv_*` materialized views | Pre-aggregated KPI tables refreshed on each load cycle |
+| BI Layer | Power BI DirectQuery | Queries views on-demand; Page Refresh re-queries every 5 s |
+| Web Preview | `web_dashboard.py` (Flask) | Browser preview at `localhost:8000` — independent of Power BI |
+
+> **Note:** The Flask dashboard at `localhost:8000` and Power BI are **independent consumers** of the same PostgreSQL database. Running both simultaneously is safe and recommended during development.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Database | PostgreSQL 15+ |
+| Backend Analytics | Python 3.9+ |
+| Data Processing | pandas, numpy |
+| Machine Learning | scikit-learn |
+| Dashboarding | Power BI (DirectQuery) |
+| Database ORM | SQLAlchemy |
+| Real-Time Simulation | faker, random, schedule |
+| Containerisation | Docker, Docker Compose |
+| IDE | VS Code |
+| Notebook Environment | Jupyter Notebook |
+| Version Control | Git & GitHub |
 
 ---
 
 ## Quick Start
 
-### Option A: Using Docker (Recommended)
+### Option A: Docker (Recommended)
 
-1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop)
-2. Ensure Docker daemon is running
-3. Clone the repository:
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop) and ensure the daemon is running.
+
+2. Clone the repository:
    ```bash
    git clone https://github.com/VEDANTMODI21/QuantivaIQ.git
    cd QuantivaIQ
    ```
-4. Install Python dependencies:
+
+3. Install Python dependencies:
    ```bash
    pip install -r requirements.txt
    ```
+
+4. Copy and configure the environment file:
+   ```bash
+   cp .env.example .env
+   ```
+   > Set `DB_HOST=postgres` inside `.env` for Docker Compose containers. Keep `DB_HOST=localhost` when connecting Power BI Desktop from your host machine.
+
 5. Start PostgreSQL container:
    ```bash
    docker compose up -d postgres
    ```
-6. Wait 10 seconds for PostgreSQL to be ready, then initialize the database:
+
+6. Wait 10 seconds, then initialise the schema and seed the warehouse:
    ```bash
-   python python/db_setup.py
+   docker compose --profile setup run --rm setup
    ```
-7. Seed initial data:
+
+7. Start the web dashboard and live simulator:
    ```bash
-   python python/etl_pipeline.py
+   docker compose up -d web simulator
    ```
-8. Start live data simulation:
-   ```bash
-   python python/live_data_generator.py
+
+8. Open the browser dashboard:
    ```
+   http://localhost:8000
+   ```
+
+**One-command alternative (PowerShell):**
+```powershell
+./deploy.ps1
+```
+
+---
 
 ### Option B: Local PostgreSQL
 
-1. Install [PostgreSQL 15+](https://www.postgresql.org/download/)
-2. Create database and user:
+1. Install [PostgreSQL 15+](https://www.postgresql.org/download/).
+
+2. Create the database and user:
    ```sql
    CREATE DATABASE quantivaiq;
    CREATE USER postgres WITH PASSWORD 'postgres';
@@ -69,25 +176,37 @@ The system simulates a real-world analytics architecture similar to platforms us
    ALTER ROLE postgres SET timezone TO 'UTC';
    GRANT ALL PRIVILEGES ON DATABASE quantivaiq TO postgres;
    ```
+
 3. Clone and install:
    ```bash
    git clone https://github.com/VEDANTMODI21/QuantivaIQ.git
    cd QuantivaIQ
    pip install -r requirements.txt
    ```
-4. Configure `.env` file (copy from `.env.example`). If you use Docker Compose, set `DB_HOST=postgres` inside the `.env` so the app containers can resolve the database service. When connecting from Power BI Desktop on your host, keep `DB_HOST=localhost` for the host connection.
-5. Initialize database schema:
+
+4. Configure `.env` (copy from `.env.example`).
+
+5. Initialise database schema:
    ```bash
    python python/db_setup.py
    ```
-6. Run ETL pipeline:
+
+6. Run the ETL pipeline:
    ```bash
    python python/etl_pipeline.py
    ```
-7. Start live simulation:
+
+7. Start the live simulator:
    ```bash
    python python/live_data_generator.py
    ```
+
+8. Launch the web dashboard:
+   ```bash
+   python python/web_dashboard.py
+   ```
+
+---
 
 ### Option C: In-Memory Demo (No Database Required)
 
@@ -98,205 +217,266 @@ pip install -r requirements.txt
 python run_demo.py
 ```
 
-This runs a complete analytics pipeline in-memory without needing PostgreSQL.
+Runs a complete analytics pipeline in-memory — no PostgreSQL needed.
 
-### Launch the Web Dashboard on the Network
+---
 
-Once PostgreSQL and ETL are initialized, start the dashboard with:
+## Power BI Live Integration
+
+### Prerequisites
+
+- Docker Desktop installed and daemon running
+- PostgreSQL 15+ accessible on port `5432`
+- Power BI Desktop (latest)
+- Python 3.9+ with all `requirements.txt` packages installed
+- OS firewall open on ports `8000` and `5432`
+
+---
+
+### Environment Variables
+
+| Variable | Docker Value | Local Value |
+|---|---|---|
+| `DB_HOST` | `postgres` | `localhost` |
+| `DB_PORT` | `5432` | `5432` |
+| `DB_NAME` | `quantivaiq` | `quantivaiq` |
+| `DB_USER` | `postgres` | `postgres` |
+| `DB_PASSWORD` | `postgres` | `postgres` |
+| `SIMULATION_INTERVAL_SECONDS` | `5` | `5` |
+
+---
+
+### Starting the Stack
+
+Verify all services are running before connecting Power BI:
 
 ```bash
-python python/web_dashboard.py
+docker compose ps
 ```
 
-Then open your browser to:
+All three — `postgres`, `web`, `simulator` — should show status `Up`.
 
-```text
-http://<your-machine-ip>:8000
-```
+| Service | URL / Address | Notes |
+|---|---|---|
+| Flask Dashboard | `http://localhost:8000` | Browser preview — independent of Power BI |
+| PostgreSQL (local PBI) | `localhost:5432` | Use when Power BI runs on the same machine |
+| PostgreSQL (remote PBI) | `<host-ip>:5432` | Use when Power BI is on another device |
+| Flask (remote device) | `http://<host-ip>:8000` | Flask binds `0.0.0.0` — reachable network-wide |
 
-Use your host machine IP address instead of `localhost` to access the dashboard from another device on the same network.
+---
 
-> Note: The Flask app binds to `0.0.0.0`, so it is reachable across the network whenever your machine firewall allows port `8000`.
-
-### Network deployment notes
-- If your host machine IP is `192.168.1.100`, access the dashboard at `http://192.168.1.100:8000`.
-- For Power BI Desktop on another network device, connect to PostgreSQL at `<host-ip>:5432`.
-- Ensure your OS firewall allows inbound traffic on ports `8000` and `5432`.
-
-The dashboard shows:
-- total customers
-- total orders
-- total revenue
-- fraud flags
-- top products by revenue
-- revenue by region
-- customer segments
-
-> Note: The current project includes a Flask-based browser dashboard for local preview. Power BI integration is supported separately by connecting Power BI Desktop to the backend PostgreSQL database.
-
-### Power BI Live Integration
-
-This repository now supports a full PostgreSQL-backed analytics stack with live Power BI connectivity.
-
-1. Ensure Docker Desktop is installed and running.
-2. Copy `.env.example` to `.env` and fill in your credentials.
-3. Start the local stack with Docker Compose:
-   ```powershell
-   docker compose up -d postgres
-   ```
-4. Initialize the database and seed the warehouse:
-   ```powershell
-   docker compose --profile setup run --rm setup
-   ```
-5. Start the web dashboard and live simulator:
-   ```powershell
-   docker compose up -d web simulator
-   ```
-6. Open Power BI Desktop and connect to PostgreSQL at `localhost:5432` using **DirectQuery** (or use the host IP if Power BI is remote).
-7. Enable **Page refresh** in Power BI and use a 5-second interval to see live simulation updates.
-
-> If Power BI Desktop is on another machine, connect to `http://<host-ip>:5432` instead of `localhost`.
-
-Alternatively, run the helper script from the repository root:
-
-```powershell
-./deploy.ps1
-```
-
-### What is now integrated
-
-- PostgreSQL data warehouse running in Docker
-- Python ETL pipeline loading analytics tables
-- Live data simulator updating the database continuously
-- Power BI-ready materialized views refreshed automatically
-- Flask dashboard available at `http://localhost:8000`
-
-## Power BI Connection and Live Refresh
-
-To connect Power BI Desktop to the QuantivaIQ backend:
+### Connecting Power BI Desktop
 
 1. Open Power BI Desktop.
-2. Select **Get Data** -> **More...** -> **PostgreSQL database**.
-3. Enter the server and database:
-   - **Server**: `localhost` (same machine) or `<host-ip>` (remote machine on the same network)
-   - **Database**: `quantivaiq`
-4. Choose **DirectQuery** as the data connectivity mode.
-5. Enter the credentials:
-   - **User**: `postgres`
-   - **Password**: `postgres` (or your configured value)
-6. Select the recommended views and tables:
-   - `mv_daily_revenue`
-   - `mv_customer_kpis`
-   - `mv_product_performance`
-   - `mv_fraud_summary`
-   - `mv_inventory_status`
-   - `customer_segments`
-   - `fraud_logs`
+2. Click **Get Data** → **More…** → **Database** → **PostgreSQL database**.
+3. Enter connection details:
 
-> If Power BI Desktop is on another host, connect to `http://<host-ip>:5432` instead of `localhost`.
+   | Field | Value |
+   |---|---|
+   | Server | `localhost` (same machine) or `<host-ip>` (remote) |
+   | Database | `quantivaiq` |
+   | Data Connectivity Mode | **DirectQuery** |
+   | Username | `postgres` |
+   | Password | `postgres` |
 
-### Enable Live Page Refresh in Power BI
+> ⚠️ **Always choose DirectQuery — not Import.** Import mode caches a snapshot and will NOT reflect live simulator updates.
 
-To see live simulation updates from `python/live_data_generator.py`:
+---
 
-1. In Power BI Desktop, open the report page.
-2. Go to the **Format** pane for the page.
-3. Enable **Page refresh**.
-4. Set the refresh interval to **5 seconds** (or match `SIMULATION_INTERVAL_SECONDS`).
+### Selecting Views and Tables
 
-### Recommended Power BI Dashboard Tabs
+In the Navigator pane, choose these Power BI-optimized views and tables:
 
-- **Executive Dashboard**: Total Revenue, Revenue Trend, Active Customers, Fraud Incidents
-- **Customer Dashboard**: RFM segments, CLTV, customer retention and churn
-- **Fraud Dashboard**: Fraud rate, risk score, suspicious refunds, incident types
-- **Inventory Dashboard**: Stock levels, low-stock alerts, inventory value
+| View / Table | Dashboard Module | Key Columns |
+|---|---|---|
+| `mv_daily_revenue` | Executive | `date`, `total_revenue`, `order_count` |
+| `mv_customer_kpis` | Customer | `customer_id`, `total_orders`, `total_spend` |
+| `mv_product_performance` | Inventory | `product_id`, `product_name`, `total_units_sold`, `total_revenue` |
+| `mv_fraud_summary` | Fraud | `fraud_type`, `detection_date`, `fraud_incidents` |
+| `mv_inventory_status` | Inventory | `warehouse_location`, `quantity_on_hand`, `reorder_level` |
+| `customer_segments` | Customer | `customer_id`, `segment_name`, `rfm_score` |
+| `fraud_logs` | Fraud | `order_id`, `customer_id`, `risk_score`, `fraud_type` |
+| `orders` | Executive | `order_id`, `customer_id`, `total_amount`, `order_date`, `region` |
+| `order_items` | Executive | `order_id`, `product_id`, `quantity`, `unit_price`, `discount` |
+| `products` | Inventory | `product_id`, `product_name`, `cost_price`, `stock_quantity`, `reorder_level` |
+
+---
+
+### Enabling Live Page Refresh
+
+This makes the dashboard react to `python/live_data_generator.py` in near real-time:
+
+1. In Power BI Desktop, select any report page.
+2. Open the **Format** pane (paint roller icon).
+3. Expand **Page refresh**.
+4. Toggle **Auto page refresh** to ON.
+5. Set refresh interval to **5 seconds** (matching `SIMULATION_INTERVAL_SECONDS`).
+
+> **Note:** 5-second refresh is appropriate for development. For production, use 30–60 seconds to reduce query load.
+
+---
 
 ## DAX Measures Reference
 
 ### Revenue & Sales Measures
 
-- `Total Revenue = SUM(orders[total_amount])`
-- `PM Revenue = CALCULATE([Total Revenue], PREVIOUSMONTH('Date'[Date]))`
-- `MoM Growth % = DIVIDE([Total Revenue] - [PM Revenue], [PM Revenue], 0)`
-- `AOV = DIVIDE([Total Revenue], DISTINCTCOUNT(orders[order_id]))`
-- `Gross Profit = SUMX(order_items, order_items[quantity] * (order_items[unit_price] - RELATED(products[cost_price])))`
-- `Profit Margin % = DIVIDE([Gross Profit], [Total Revenue], 0)`
-- `YTD Revenue = TOTALYTD([Total Revenue], 'Date'[Date])`
-- `Total Discount = SUM(order_items[discount])`
+```dax
+Total Revenue = SUM(orders[total_amount])
+
+PM Revenue = CALCULATE([Total Revenue], PREVIOUSMONTH('Date'[Date]))
+
+MoM Growth % = DIVIDE([Total Revenue] - [PM Revenue], [PM Revenue], 0)
+
+AOV = DIVIDE([Total Revenue], DISTINCTCOUNT(orders[order_id]))
+
+Gross Profit = SUMX(order_items,
+    order_items[quantity] * (order_items[unit_price] - RELATED(products[cost_price])))
+
+Profit Margin % = DIVIDE([Gross Profit], [Total Revenue], 0)
+
+YTD Revenue = TOTALYTD([Total Revenue], 'Date'[Date])
+
+Total Discount = SUM(order_items[discount])
+```
 
 ### Customer & Retention Measures
 
-- `Total Customers = DISTINCTCOUNT(customers[customer_id])`
-- `Active Customers 30D = CALCULATE(DISTINCTCOUNT(orders[customer_id]), orders[order_date] >= TODAY() - 30)`
-- `New Customers = CALCULATE(DISTINCTCOUNT(customers[customer_id]), customers[registration_date] >= DATEADD(LASTDATE('Date'[Date]), -1, MONTH))`
-- `Retention Rate % = DIVIDE([Active Customers 30D], [Total Customers], 0)`
-- `Churn Rate % = 1 - [Retention Rate %]`
-- `Repeat Purchase Rate = VAR CustomersWithMultipleOrders = FILTER(VALUES(orders[customer_id]), CALCULATE(COUNT(orders[order_id])) > 1) RETURN DIVIDE(COUNTROWS(CustomersWithMultipleOrders), [Total Customers])`
-- `Avg CLTV = DIVIDE([Total Revenue], [Total Customers])`
+```dax
+Total Customers = DISTINCTCOUNT(customers[customer_id])
+
+Active Customers 30D = CALCULATE(
+    DISTINCTCOUNT(orders[customer_id]),
+    orders[order_date] >= TODAY() - 30)
+
+New Customers = CALCULATE(
+    DISTINCTCOUNT(customers[customer_id]),
+    customers[registration_date] >= DATEADD(LASTDATE('Date'[Date]), -1, MONTH))
+
+Retention Rate % = DIVIDE([Active Customers 30D], [Total Customers], 0)
+
+Churn Rate % = 1 - [Retention Rate %]
+
+Repeat Purchase Rate =
+VAR CustomersWithMultipleOrders =
+    FILTER(VALUES(orders[customer_id]),
+        CALCULATE(COUNT(orders[order_id])) > 1)
+RETURN DIVIDE(COUNTROWS(CustomersWithMultipleOrders), [Total Customers])
+
+Avg CLTV = DIVIDE([Total Revenue], [Total Customers])
+```
 
 ### Fraud & Risk Measures
 
-- `Total Fraud Txns = COUNTROWS(fraud_logs)`
-- `Fraud Rate % = DIVIDE([Total Fraud Txns], COUNTROWS(orders), 0)`
-- `Value at Risk = CALCULATE(SUM(orders[total_amount]), USERELATIONSHIP(orders[order_id], fraud_logs[order_id]))`
-- `High Risk Customers = CALCULATE(DISTINCTCOUNT(fraud_logs[customer_id]), fraud_logs[risk_score] >= 80)`
-- `Avg Risk Score = AVERAGE(fraud_logs[risk_score])`
-- `Total Refunds = SUM(refunds[refund_amount])`
-- `Refund Rate % = DIVIDE([Total Refunds], [Total Revenue], 0)`
+```dax
+Total Fraud Txns = COUNTROWS(fraud_logs)
+
+Fraud Rate % = DIVIDE([Total Fraud Txns], COUNTROWS(orders), 0)
+
+Value at Risk = CALCULATE(
+    SUM(orders[total_amount]),
+    USERELATIONSHIP(orders[order_id], fraud_logs[order_id]))
+
+High Risk Customers = CALCULATE(
+    DISTINCTCOUNT(fraud_logs[customer_id]),
+    fraud_logs[risk_score] >= 80)
+
+Avg Risk Score = AVERAGE(fraud_logs[risk_score])
+
+Total Refunds = SUM(refunds[refund_amount])
+
+Refund Rate % = DIVIDE([Total Refunds], [Total Revenue], 0)
+```
 
 ### Inventory & Product Measures
 
-- `Total Units Sold = SUM(order_items[quantity])`
-- `Total Inventory Value = SUMX(products, products[stock_quantity] * products[cost_price])`
-- `Out of Stock Items = CALCULATE(COUNTROWS(products), products[stock_quantity] <= 0)`
-- `Low Stock Items = CALCULATE(COUNTROWS(products), products[stock_quantity] <= products[reorder_level])`
-- `Inventory Turnover = DIVIDE(SUM(order_items[quantity]), AVERAGE(products[stock_quantity]), 0)`
-- `Top Product Revenue = MAXX(VALUES(products[product_name]), [Total Revenue])`
+```dax
+Total Units Sold = SUM(order_items[quantity])
+
+Total Inventory Value = SUMX(products,
+    products[stock_quantity] * products[cost_price])
+
+Out of Stock Items = CALCULATE(
+    COUNTROWS(products),
+    products[stock_quantity] <= 0)
+
+Low Stock Items = CALCULATE(
+    COUNTROWS(products),
+    products[stock_quantity] <= products[reorder_level])
+
+Inventory Turnover = DIVIDE(
+    SUM(order_items[quantity]),
+    AVERAGE(products[stock_quantity]), 0)
+
+Top Product Revenue = MAXX(VALUES(products[product_name]), [Total Revenue])
+```
 
 ### Formatting & UI Helpers
 
-- `MoM Color = IF([MoM Growth %] > 0, "Green", "Red")`
-- `Risk Color = SWITCH(TRUE(), [Avg Risk Score] >= 80, "#FF0000", [Avg Risk Score] >= 50, "#FFA500", "#00FF00")`
-- `Dashboard Title = "QuantivaIQ Analytics - " & FORMAT(TODAY(), "MMMM YYYY")`
+```dax
+MoM Color = IF([MoM Growth %] > 0, "Green", "Red")
+
+Risk Color = SWITCH(TRUE(),
+    [Avg Risk Score] >= 80, "#FF0000",
+    [Avg Risk Score] >= 50, "#FFA500",
+    "#00FF00")
+
+Dashboard Title = "QuantivaIQ Analytics - " & FORMAT(TODAY(), "MMMM YYYY")
+```
 
 ---
 
-# Tech Stack
+## Recommended Dashboard Tabs
 
-| Layer | Technology |
-|---|---|
-| Database | PostgreSQL |
-| Backend Analytics | Python |
-| Data Processing | pandas, numpy |
-| Machine Learning | scikit-learn |
-| Dashboarding | Power BI |
-| Database ORM | SQLAlchemy |
-| Real-Time Simulation | faker, random, schedule |
-| IDE | VS Code |
-| Notebook Environment | Jupyter Notebook |
-| Version Control | Git & GitHub |
+### Executive Dashboard
+
+| Visual Type | Fields / Measure | Purpose |
+|---|---|---|
+| KPI Card | `Total Revenue` | Primary revenue headline |
+| KPI Card | `MoM Growth %` (colour: `MoM Color`) | Revenue trend at a glance |
+| KPI Card | `AOV` | Average order health |
+| KPI Card | `YTD Revenue` | Year-to-date progress |
+| Line Chart | `mv_daily_revenue[date]` vs `Total Revenue` | Revenue trend over time |
+| Bar Chart | `orders[region]` vs `Total Revenue` | Revenue by region |
+| Treemap | `products[product_name]` vs `Gross Profit` | Profitability by product |
+
+### Customer Dashboard
+
+| Visual Type | Fields / Measure | Purpose |
+|---|---|---|
+| KPI Card | `Total Customers` | Total customer base size |
+| KPI Card | `Active Customers 30D` | Engagement snapshot |
+| KPI Card | `Retention Rate %` | Retention health |
+| KPI Card | `Avg CLTV` | Customer lifetime value |
+| Donut Chart | `customer_segments[segment_name]` | RFM segment distribution |
+| Table | `customer_segments` — all columns | Segment drill-through |
+| Line Chart | `New Customers` over time | Acquisition trend |
+
+### Fraud Dashboard
+
+| Visual Type | Fields / Measure | Purpose |
+|---|---|---|
+| KPI Card | `Total Fraud Txns` | Incident count |
+| KPI Card | `Fraud Rate %` | % of total orders flagged |
+| KPI Card | `Value at Risk` | Total revenue exposed |
+| KPI Card | `Avg Risk Score` (colour: `Risk Color`) | Current threat level |
+| Bar Chart | `fraud_logs[fraud_type]` vs count | Fraud type breakdown |
+| Map / Scatter | `orders[region]` vs `Fraud Rate %` | Geographic fraud heatmap |
+| Table | `fraud_logs` — high `risk_score` rows | Incident drill-through |
+
+### Inventory Dashboard
+
+| Visual Type | Fields / Measure | Purpose |
+|---|---|---|
+| KPI Card | `Total Inventory Value` | Stock valuation |
+| KPI Card | `Out of Stock Items` | Zero-stock alert count |
+| KPI Card | `Low Stock Items` | Reorder alert count |
+| KPI Card | `Inventory Turnover` | Efficiency metric |
+| Bar Chart | `mv_inventory_status[product_name]` vs `quantity_on_hand` | Stock levels |
+| Gauge | `Inventory Turnover` vs target` | Turnover vs benchmark |
 
 ---
 
-# System Architecture
-
-Historical Datasets / Simulated Live Data
-                ↓
-        Python ETL Pipelines
-                ↓
-      PostgreSQL Data Warehouse
-                ↓
-      Advanced SQL Analytics Layer
-                ↓
-     Machine Learning Intelligence
-                ↓
-    Power BI Real-Time Dashboards
-                ↓
-      Business Insights & Alerts
-
----
-
-# Core Features
+## Core Features
 
 - Real-time business analytics
 - Fraud detection engine
@@ -312,266 +492,133 @@ Historical Datasets / Simulated Live Data
 
 ---
 
-# Enterprise Data Warehouse
+## Enterprise Data Warehouse
 
-## Database Domains
+### Database Domains
 
-### Customer Domain
-- customers
-- customer_sessions
-- customer_segments
-
-### Product Domain
-- products
-- categories
-- suppliers
-- inventory
-
-### Sales Domain
-- orders
-- order_items
-- payments
-- refunds
-
-### Fraud Domain
-- fraud_logs
-- suspicious_transactions
-
-### Feedback Domain
-- reviews
-- ratings
+| Domain | Tables |
+|---|---|
+| Customer | `customers`, `customer_sessions`, `customer_segments` |
+| Product | `products`, `categories`, `suppliers`, `inventory` |
+| Sales | `orders`, `order_items`, `payments`, `refunds` |
+| Fraud | `fraud_logs`, `suspicious_transactions` |
+| Feedback | `reviews`, `ratings` |
 
 ---
 
-# Advanced SQL Analytics
+## Advanced SQL Analytics
 
-## SQL Concepts Used
+SQL concepts used across `sql/analytics_queries.sql`:
 
-- Complex JOINs
-- CTEs
+- Complex JOINs and CTEs
 - Window Functions
-- Views
-- Materialized Views
-- Stored Procedures
-- Triggers
-- Transactions
-- Indexing
-- Query Optimization
+- Views and Materialized Views (`mv_*`)
+- Stored Procedures and Triggers
+- Transactions, Indexing, and Query Optimization
 
 ---
 
-# Business KPI Analytics
+## ETL Pipeline
 
-## Revenue Metrics
-- Monthly Revenue Growth
-- Regional Revenue Trends
-- Product Category Performance
-- Profitability Analysis
-
-## Customer Metrics
-- Customer Retention Rate
-- Customer Churn Rate
-- Repeat Purchase Rate
-- Customer Lifetime Value (CLTV)
-
-## Inventory Metrics
-- Inventory Turnover
-- Low Stock Detection
-- Overstock Monitoring
-
-## Fraud Metrics
-- Fraud Transaction Ratio
-- Suspicious Refund Detection
-- High-Risk Customer Monitoring
-
----
-
-# ETL Pipeline
-
-## Extract
+### Extract
 - Retail datasets
 - Transaction datasets
-- Simulated live data streams
+- Simulated live data streams via `live_data_generator.py`
 
-## Transform
+### Transform
 - Missing value handling
 - Duplicate removal
-- Data normalization
-- Outlier detection
-- Feature engineering
+- Data normalisation and outlier detection
+- Feature engineering for ML models
 
-## Load
-- Automated loading into PostgreSQL warehouse
-
----
-
-# Real-Time Data Simulation
-
-A Python-based simulation engine continuously generates:
-- customer activity
-- orders
-- payments
-- refunds
-- inventory updates
-
-This creates a near real-time analytics environment.
+### Load
+- Automated loading into PostgreSQL warehouse tables
+- Materialized view refresh on each pipeline run
 
 ---
 
-# Fraud Detection Engine
+## Fraud Detection Engine
 
-## Fraud Scenarios
-- abnormal transaction frequency
-- excessive refund requests
-- suspicious payment patterns
-- bot-generated transactions
+### Fraud Scenarios Detected
+- Abnormal transaction frequency
+- Excessive refund requests
+- Suspicious payment patterns
+- Bot-generated transactions
 
----
-
-## ML Algorithms Used
+### ML Algorithms
 - Isolation Forest
 - Z-Score Anomaly Detection
 - Clustering-Based Detection
 
 ---
 
-# Customer Intelligence System
+## Customer Intelligence System
 
-## RFM Segmentation
-Customers classified into:
-- VIP Customers
-- Loyal Customers
-- At-Risk Customers
-- Inactive Customers
+### RFM Segmentation
 
----
+| Segment | Description |
+|---|---|
+| VIP Customers | High recency, frequency, and monetary value |
+| Loyal Customers | Consistent purchasers with strong engagement |
+| At-Risk Customers | Previously active, declining engagement |
+| Inactive Customers | No recent activity — churn likely |
 
-## Predictive Analytics
-- Customer Churn Prediction
-- Customer Lifetime Value Prediction
-
-Algorithms:
-- Logistic Regression
-- Random Forest
+### Predictive Analytics
+- **Churn Prediction** — Logistic Regression, Random Forest
+- **CLTV Prediction** — regression models on historical spend patterns
+- **Product Recommendations** — Collaborative Filtering, Cosine Similarity
 
 ---
 
-# Recommendation Engine
+## Demand Forecasting
 
-Product recommendation system using:
-- Collaborative Filtering
-- Cosine Similarity
-
-Example:
-"Customers who bought X also bought Y"
-
----
-
-# Demand Forecasting
-
-Forecasts:
-- future sales demand
-- seasonal trends
-- inventory requirements
-
-Models:
+Forecasts future sales demand, seasonal trends, and inventory requirements using:
 - ARIMA
 - Linear Regression
 - Prophet
 
 ---
 
-# Power BI Real-Time Dashboard
+## Project Structure
 
-## Dashboard Modules
-
-### Executive Dashboard
-- Revenue KPIs
-- Profit Analysis
-- Growth Trends
-
-### Customer Dashboard
-- Customer Segmentation
-- Churn Analytics
-- CLTV Insights
-
-### Fraud Dashboard
-- Suspicious Transactions
-- Fraud Heatmaps
-- Refund Abuse Monitoring
-
-### Inventory Dashboard
-- Stock Monitoring
-- Inventory Trends
-- Low Stock Alerts
-
----
-
-# Dashboard Features
-
-- DirectQuery Integration
-- Auto Refresh
-- DAX Measures
-- Interactive Filters
-- Drill-Through Reports
-- KPI Cards
-- Forecast Visualizations
-- Geographic Analysis
-
----
-
-# Real-Time Integration
-
-Python continuously inserts live transactional data into PostgreSQL.
-
-Power BI connects using:
-- DirectQuery
-- Auto Refresh
-
-This enables near real-time dashboard monitoring.
-
----
-
-# Dataset Sources
-
-## Historical Datasets
-- E-commerce transaction datasets
-- Retail sales datasets
-- Customer behavior datasets
-
-Sources:
-- Kaggle
-- UCI Repository
-
----
-
-# Project Structure
-
-project/
+```
+QuantivaIQ/
 │
-├── datasets/
+├── datasets/                    # Historical retail and transaction datasets
 ├── sql/
-│   ├── schema.sql
-│   ├── procedures.sql
-│   ├── analytics_queries.sql
-│
+│   ├── schema.sql               # Full DDL — all table definitions
+│   ├── procedures.sql           # Stored procedures and triggers
+│   └── analytics_queries.sql    # SQL behind each mv_* materialized views
 ├── python/
-│   ├── etl_pipeline.py
-│   ├── fraud_detection.py
-│   ├── forecasting.py
-│   ├── live_data_generator.py
-│
-├── dashboards/
-│   ├── dax_measures.md
-│   ├── powerbi_connection_guide.md
-│
+│   ├── db_setup.py              # Creates PostgreSQL schema and materialized views
+│   ├── etl_pipeline.py          # Loads and transforms data; populates mv_* views
+│   ├── fraud_detection.py       # ML-based fraud detection engine
+│   ├── forecasting.py           # ARIMA / Prophet demand forecasting
+│   ├── live_data_generator.py   # Continuous simulator — drives live DirectQuery data
+│   └── web_dashboard.py         # Flask preview server on port 8000
 ├── notebooks/
-│   ├── analytics.ipynb
-│
-├── reports/
-│
+│   └── analytics.ipynb          # Exploratory analysis and model prototyping
+├── reports/                     # Generated reports and exports
+├── docker-compose.yml           # Service definitions: postgres, web, simulator, setup
+├── deploy.ps1                   # PowerShell one-click full-stack launch
+├── run_demo.py                  # In-memory demo (no database required)
+├── .env.example                 # Environment variable template
 └── README.md
+```
 
-> Note: Power BI report/template files are not included in this repository. Build the report locally using Power BI Desktop and connect it to the PostgreSQL data warehouse.
+> **Note:** Power BI report/template files are not included in this repository. Build the report locally using Power BI Desktop and connect it to the PostgreSQL data warehouse using the steps above.
 
 ---
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Power BI cannot connect to PostgreSQL | `DB_HOST` mismatch | Use `localhost` for same machine; use `<host-ip>` for remote. Check firewall allows port `5432`. |
+| Dashboard shows stale data | Import mode selected instead of DirectQuery | Delete the dataset, reconnect using **DirectQuery**. |
+| Page refresh not working | Feature not enabled on the page | Format pane → Page refresh → ON, set 5 s interval. |
+| `mv_daily_revenue` is empty | ETL not run | Run: `python python/etl_pipeline.py` |
+| Simulator not generating data | Process not started | Run: `python python/live_data_generator.py` |
+| Flask dashboard at 8000 not loading | `web` service not started | Run: `docker compose up -d web` or `python python/web_dashboard.py` |
+| Docker postgres not starting | Port 5432 already in use | Stop local PostgreSQL service or remap port in `docker-compose.yml`. |
+| `mv_*` views all empty after setup | `--profile setup` step skipped | Re-run: `docker compose --profile setup run --rm setup` |
