@@ -171,9 +171,93 @@ Alternatively, run the helper script from the repository root:
 - Power BI-ready materialized views refreshed automatically
 - Flask dashboard available at `http://localhost:8000`
 
-For detailed Power BI connection instructions and DAX formulas, see:
-- `dashboards/powerbi_connection_guide.md`
-- `dashboards/dax_measures.md`
+## Power BI Connection and Live Refresh
+
+To connect Power BI Desktop to the QuantivaIQ backend:
+
+1. Open Power BI Desktop.
+2. Select **Get Data** -> **More...** -> **PostgreSQL database**.
+3. Enter the server and database:
+   - **Server**: `localhost` (same machine) or `<host-ip>` (remote machine on the same network)
+   - **Database**: `quantivaiq`
+4. Choose **DirectQuery** as the data connectivity mode.
+5. Enter the credentials:
+   - **User**: `postgres`
+   - **Password**: `postgres` (or your configured value)
+6. Select the recommended views and tables:
+   - `mv_daily_revenue`
+   - `mv_customer_kpis`
+   - `mv_product_performance`
+   - `mv_fraud_summary`
+   - `mv_inventory_status`
+   - `customer_segments`
+   - `fraud_logs`
+
+> If Power BI Desktop is on another host, connect to `http://<host-ip>:5432` instead of `localhost`.
+
+### Enable Live Page Refresh in Power BI
+
+To see live simulation updates from `python/live_data_generator.py`:
+
+1. In Power BI Desktop, open the report page.
+2. Go to the **Format** pane for the page.
+3. Enable **Page refresh**.
+4. Set the refresh interval to **5 seconds** (or match `SIMULATION_INTERVAL_SECONDS`).
+
+### Recommended Power BI Dashboard Tabs
+
+- **Executive Dashboard**: Total Revenue, Revenue Trend, Active Customers, Fraud Incidents
+- **Customer Dashboard**: RFM segments, CLTV, customer retention and churn
+- **Fraud Dashboard**: Fraud rate, risk score, suspicious refunds, incident types
+- **Inventory Dashboard**: Stock levels, low-stock alerts, inventory value
+
+## DAX Measures Reference
+
+### Revenue & Sales Measures
+
+- `Total Revenue = SUM(orders[total_amount])`
+- `PM Revenue = CALCULATE([Total Revenue], PREVIOUSMONTH('Date'[Date]))`
+- `MoM Growth % = DIVIDE([Total Revenue] - [PM Revenue], [PM Revenue], 0)`
+- `AOV = DIVIDE([Total Revenue], DISTINCTCOUNT(orders[order_id]))`
+- `Gross Profit = SUMX(order_items, order_items[quantity] * (order_items[unit_price] - RELATED(products[cost_price])))`
+- `Profit Margin % = DIVIDE([Gross Profit], [Total Revenue], 0)`
+- `YTD Revenue = TOTALYTD([Total Revenue], 'Date'[Date])`
+- `Total Discount = SUM(order_items[discount])`
+
+### Customer & Retention Measures
+
+- `Total Customers = DISTINCTCOUNT(customers[customer_id])`
+- `Active Customers 30D = CALCULATE(DISTINCTCOUNT(orders[customer_id]), orders[order_date] >= TODAY() - 30)`
+- `New Customers = CALCULATE(DISTINCTCOUNT(customers[customer_id]), customers[registration_date] >= DATEADD(LASTDATE('Date'[Date]), -1, MONTH))`
+- `Retention Rate % = DIVIDE([Active Customers 30D], [Total Customers], 0)`
+- `Churn Rate % = 1 - [Retention Rate %]`
+- `Repeat Purchase Rate = VAR CustomersWithMultipleOrders = FILTER(VALUES(orders[customer_id]), CALCULATE(COUNT(orders[order_id])) > 1) RETURN DIVIDE(COUNTROWS(CustomersWithMultipleOrders), [Total Customers])`
+- `Avg CLTV = DIVIDE([Total Revenue], [Total Customers])`
+
+### Fraud & Risk Measures
+
+- `Total Fraud Txns = COUNTROWS(fraud_logs)`
+- `Fraud Rate % = DIVIDE([Total Fraud Txns], COUNTROWS(orders), 0)`
+- `Value at Risk = CALCULATE(SUM(orders[total_amount]), USERELATIONSHIP(orders[order_id], fraud_logs[order_id]))`
+- `High Risk Customers = CALCULATE(DISTINCTCOUNT(fraud_logs[customer_id]), fraud_logs[risk_score] >= 80)`
+- `Avg Risk Score = AVERAGE(fraud_logs[risk_score])`
+- `Total Refunds = SUM(refunds[refund_amount])`
+- `Refund Rate % = DIVIDE([Total Refunds], [Total Revenue], 0)`
+
+### Inventory & Product Measures
+
+- `Total Units Sold = SUM(order_items[quantity])`
+- `Total Inventory Value = SUMX(products, products[stock_quantity] * products[cost_price])`
+- `Out of Stock Items = CALCULATE(COUNTROWS(products), products[stock_quantity] <= 0)`
+- `Low Stock Items = CALCULATE(COUNTROWS(products), products[stock_quantity] <= products[reorder_level])`
+- `Inventory Turnover = DIVIDE(SUM(order_items[quantity]), AVERAGE(products[stock_quantity]), 0)`
+- `Top Product Revenue = MAXX(VALUES(products[product_name]), [Total Revenue])`
+
+### Formatting & UI Helpers
+
+- `MoM Color = IF([MoM Growth %] > 0, "Green", "Red")`
+- `Risk Color = SWITCH(TRUE(), [Avg Risk Score] >= 80, "#FF0000", [Avg Risk Score] >= 50, "#FFA500", "#00FF00")`
+- `Dashboard Title = "QuantivaIQ Analytics - " & FORMAT(TODAY(), "MMMM YYYY")`
 
 ---
 
