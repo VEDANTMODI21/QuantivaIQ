@@ -26,6 +26,7 @@
   - [Connecting Power BI Desktop](#connecting-power-bi-desktop)
   - [Selecting Views and Tables](#selecting-views-and-tables)
   - [Enabling Live Page Refresh](#enabling-live-page-refresh)
+- [Power BI Report Template](#power-bi-report-template)
 - [DAX Measures Reference](#dax-measures-reference)
   - [Revenue and Sales](#revenue--sales-measures)
   - [Customer and Retention](#customer--retention-measures)
@@ -325,6 +326,16 @@ This makes the dashboard react to `python/live_data_generator.py` in near real-t
 5. Set refresh interval to **5 seconds** (matching `SIMULATION_INTERVAL_SECONDS`).
 
 > **Note:** 5-second refresh is appropriate for development. For production, use 30–60 seconds to reduce query load.
+
+---
+
+## Power BI Report Template
+
+A complete Power BI dashboard template definition is available in:
+
+- `dashboards/powerbi_dashboard_template.md`
+
+This file contains full page layouts, cards, charts, fields, measures, and model guidance for QuantivaIQ.
 
 ---
 
