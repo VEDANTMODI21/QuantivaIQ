@@ -1,11 +1,17 @@
 import os
-from flask import Flask, render_template
-from config import setup_logging, test_db_connection
-from utils import fetch_data
+from flask import Flask, render_template, jsonify
+try:
+    from config import setup_logging, test_db_connection
+    from utils import fetch_data
+    from powerbi_integration import get_report_embed_info
+except ImportError:
+    from .config import setup_logging, test_db_connection
+    from .utils import fetch_data
+    from .powerbi_integration import get_report_embed_info
 
 logger = setup_logging("WebDashboard")
 
-TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), '..', 'templates')
+TEMPLATE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
 
 
@@ -48,7 +54,27 @@ def index():
         return render_template('index.html', db_ok=False)
 
     metrics = fetch_dashboard_metrics()
-    return render_template('index.html', db_ok=True, **metrics)
+    # Determine whether Power BI integration is configured
+    try:
+        pbi_info = get_report_embed_info()
+        pbi_available = pbi_info is not None
+    except Exception:
+        pbi_available = False
+
+    return render_template('index.html', db_ok=True, pbi_available=pbi_available, **metrics)
+
+
+@app.route('/powerbi/embed')
+def powerbi_embed():
+    """Return Power BI embed configuration for client-side embedding."""
+    try:
+        pbi_info = get_report_embed_info()
+        if not pbi_info:
+            return jsonify({"error": "Power BI not configured"}), 404
+        return jsonify(pbi_info)
+    except Exception as exc:
+        logger.error(f"Power BI embed error: {exc}")
+        return jsonify({"error": str(exc)}), 500
 
 
 @app.route('/health')

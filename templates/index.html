@@ -50,5 +50,34 @@
         </table>
       </div>
     </div>
+    {% if pbi_available %}
+    <div class="section">
+      <div class="card">
+        <h2>Power BI Report</h2>
+        <div id="powerbi-report" style="height:600px;border:1px solid #ddd;padding:8px"></div>
+      </div>
+    </div>
+    <script src="https://cdn.powerbi.com/libs/powerbi-client/2.19.0/powerbi.min.js"></script>
+    <script>
+      async function embedReport(){
+        try{
+          const resp = await fetch('/powerbi/embed');
+          if(!resp.ok){ console.error('Power BI embed fetch failed', resp.status); return; }
+          const cfg = await resp.json();
+          const embedConfig = {
+            type: 'report',
+            id: cfg.reportId,
+            embedUrl: cfg.embedUrl,
+            accessToken: cfg.embedToken,
+            tokenType: window.powerbi.models.TokenType.Embed
+          };
+          const reportContainer = document.getElementById('powerbi-report');
+          window.powerbi.reset(reportContainer);
+          window.powerbi.embed(reportContainer, embedConfig);
+        }catch(e){ console.error('Power BI embed error', e); }
+      }
+      embedReport();
+    </script>
+    {% endif %}
   {% endif %}
 {% endblock %}
