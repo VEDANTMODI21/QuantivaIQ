@@ -84,7 +84,7 @@ QuantivaIQ is a retail analytics platform that combines data warehousing, ETL, f
 3. Set `DB_DRIVER=postgres` and confirm `DB_HOST=localhost`.
 4. Install dependencies:
    ```powershell
-   pip install -r requirements.txt
+   pip install -r requirements-dev.txt
    ```
 5. Run database setup:
    ```powershell
@@ -105,7 +105,7 @@ QuantivaIQ is a retail analytics platform that combines data warehousing, ETL, f
 For a fast demo without PostgreSQL:
 
 ```powershell
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 python run_demo.py
 ```
 

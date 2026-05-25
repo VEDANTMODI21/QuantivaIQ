@@ -1,5 +1,6 @@
-# QuantivaIQ — Python Dependencies
-# Install: pip install -r requirements.txt
+# QuantivaIQ — Python Dependencies for Vercel Deployment
+# This file is minimal to fit within Vercel's Serverless Function size limit (250MB).
+# For full development dependencies (ML/Data Gen), run: pip install -r requirements-dev.txt
 
 # Core Data Processing
 pandas>=2.0.0
@@ -9,29 +10,7 @@ numpy>=1.24.0
 sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.0
 
-# Machine Learning
-scikit-learn>=1.3.0
-scipy>=1.10.0
-
-# Time Series Forecasting
-statsmodels>=0.14.0
-# prophet>=1.1.5       # Uncomment if Facebook Prophet is needed (heavy dependency)
-
-# Data Simulation
-faker>=18.0.0
-schedule>=1.2.0
-
-# Visualization
-matplotlib>=3.7.0
-seaborn>=0.12.0
-
-# Utilities
-python-dotenv>=1.0.0
-tqdm>=4.65.0
-joblib>=1.3.0
+# Web Dashboard
 Flask>=2.3.0
+python-dotenv>=1.0.0
 requests>=2.31.0
-
-# Jupyter Notebook
-jupyter>=1.0.0
-ipykernel>=6.0.0
