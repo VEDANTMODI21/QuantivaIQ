@@ -26,7 +26,10 @@ SQLITE_DB_FULL_PATH = PROJECT_ROOT / SQLITE_DB_PATH
 if DB_DRIVER == "sqlite":
     if os.getenv("VERCEL"):
         # Force read-only URI mode for SQLite on Vercel's read-only filesystem
-        DATABASE_URL = f"sqlite:///file:{SQLITE_DB_FULL_PATH.as_posix()}?mode=ro&uri=true"
+        db_path = SQLITE_DB_FULL_PATH.as_posix()
+        if not db_path.startswith('/'):
+            db_path = '/' + db_path
+        DATABASE_URL = f"sqlite:///file://{db_path}?mode=ro&uri=true"
     else:
         DATABASE_URL = f"sqlite:///{SQLITE_DB_FULL_PATH}"
 else:
@@ -71,12 +74,11 @@ def test_db_connection():
         engine = get_engine()
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        return True
+        return True, ""
     except OperationalError as exc:
         logger = setup_logging("DBConnectionCheck")
-        logger.error("Unable to connect to the configured database. Confirm your .env values are correct.")
-        logger.debug(exc)
-        return False
+        logger.error(f"Unable to connect to the configured database. Error: {exc}")
+        return False, str(exc)
 
 # Logging Configuration
 def setup_logging(name="QuantivaIQ"):

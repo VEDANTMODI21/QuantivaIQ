@@ -2,13 +2,19 @@
 {% block content %}
   {% if not db_ok %}
     <div class="alert">
-      <h2>Database Connection Offline</h2>
-      <p>The dashboard could not establish a connection to the configured database. Please verify your settings:</p>
-      <ul>
-        <li>For PostgreSQL: Ensure the server is online and credentials are correct.</li>
-        <li>For SQLite: Check if <code>quantivaiq.db</code> exists in the project root directory.</li>
-        <li>Command to seed: <code>python python/db_setup.py</code> and <code>python python/etl_pipeline.py</code></li>
-      </ul>
+      <div class="status-indicator error"></div>
+      <div>
+        <h3 style="margin-top: 0;">Database Connection Offline</h3>
+        <p>The dashboard could not establish a connection to the configured database. Please verify your settings:</p>
+        <ul>
+          <li>For PostgreSQL: Ensure the server is online and credentials are correct.</li>
+          <li>For SQLite: Check if <code>quantivaiq.db</code> exists in the project root directory.</li>
+          <li>Command to seed: <code>python python/db_setup.py</code> and <code>python python/etl_pipeline.py</code></li>
+        </ul>
+        {% if db_error %}
+          <p><strong>Error Details:</strong> <code>{{ db_error }}</code></p>
+        {% endif %}
+      </div>
     </div>
   {% else %}
     <!-- KPI Metric Cards -->

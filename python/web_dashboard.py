@@ -49,9 +49,9 @@ def fetch_dashboard_metrics():
 
 @app.route('/')
 def index():
-    db_available = test_db_connection()
+    db_available, db_error = test_db_connection()
     if not db_available:
-        return render_template('index.html', db_ok=False)
+        return render_template('index.html', db_ok=False, db_error=db_error)
 
     metrics = fetch_dashboard_metrics()
     # Determine whether Power BI integration is configured
@@ -79,7 +79,8 @@ def powerbi_embed():
 
 @app.route('/health')
 def health():
-    return {'status': 'ok', 'db_available': test_db_connection()}
+    db_available, _ = test_db_connection()
+    return {'status': 'ok', 'db_available': db_available}
 
 
 if __name__ == '__main__':
