@@ -186,47 +186,45 @@ Recommended dataset files:
 
 ## Vercel Deployment
 
-This repository is configured for Vercel deployment using `vercel.json` and `pyproject.toml`.
+This repository is pre-configured for instant **Vercel deployment** with zero-configuration required for SQLite.
 
-### Required files
+### How it works on Vercel
+- The `vercel.json` file configures the Python serverless function (`api/index.py`).
+- The repository now includes a `.vercelignore` file to ensure `quantivaiq.db` is correctly uploaded to Vercel.
+- The default database driver automatically falls back to **SQLite** in read-only mode, which perfectly complies with Vercel's serverless environment.
 
-- `vercel.json`
-- `pyproject.toml`
-- `requirements.txt`
+### Deploying to Vercel
 
-### Recommended environment variables
-
-For a simple demo using SQLite:
-
-```text
-DB_DRIVER=sqlite
-SQLITE_DB_PATH=quantivaiq.db
-```
-
-For PostgreSQL deployment:
-
-```text
-DB_DRIVER=postgres
-DB_HOST=<host>
-DB_PORT=5432
-DB_NAME=quantivaiq
-DB_USER=postgres
-DB_PASSWORD=<password>
-```
-
-### Deploying from the repository
-
-1. Install the Vercel CLI if needed:
-   ```powershell
+1. **Option 1: Deploy with Vercel CLI**
+   Install the Vercel CLI if needed:
+   ```bash
    npm install -g vercel
    ```
-2. From the repository root, run:
-   ```powershell
+   From the repository root, run:
+   ```bash
    vercel login
    vercel --prod
    ```
-3. Set the same environment variables in the Vercel project settings.
-4. Redeploy after changes.
+
+2. **Option 2: Deploy from GitHub**
+   - Push your code to a GitHub repository.
+   - Go to [Vercel](https://vercel.com/) and click "Add New Project".
+   - Import your GitHub repository.
+   - Vercel will automatically detect the settings and deploy the Python backend. No environment variables are required out of the box!
+
+### Using PostgreSQL on Vercel (Optional)
+
+If you prefer to connect your Vercel deployment to a live PostgreSQL database (like Supabase, Neon, or AWS RDS), add the following Environment Variables in your Vercel project settings:
+
+```text
+DB_DRIVER=postgres
+DB_HOST=<your-db-host>
+DB_PORT=5432
+DB_NAME=quantivaiq
+DB_USER=<your-db-username>
+DB_PASSWORD=<your-db-password>
+```
+Redeploy the application for the environment variables to take effect.
 
 ## Project Structure
 

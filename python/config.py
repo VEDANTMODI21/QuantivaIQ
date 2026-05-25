@@ -12,7 +12,7 @@ ENV_PATH = PROJECT_ROOT / ".env"
 load_dotenv(ENV_PATH)
 
 # Database Configuration
-DB_DRIVER = os.getenv("DB_DRIVER", "postgres").lower()
+DB_DRIVER = os.getenv("DB_DRIVER", "sqlite").lower()
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "quantivaiq")
