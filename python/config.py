@@ -24,7 +24,11 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SQLITE_DB_FULL_PATH = PROJECT_ROOT / SQLITE_DB_PATH
 
 if DB_DRIVER == "sqlite":
-    DATABASE_URL = f"sqlite:///{SQLITE_DB_FULL_PATH}"
+    if os.getenv("VERCEL"):
+        # Force read-only URI mode for SQLite on Vercel's read-only filesystem
+        DATABASE_URL = f"sqlite:///file:{SQLITE_DB_FULL_PATH.as_posix()}?mode=ro&uri=true"
+    else:
+        DATABASE_URL = f"sqlite:///{SQLITE_DB_FULL_PATH}"
 else:
     DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
@@ -33,7 +37,12 @@ else:
 def _sqlite_configure(dbapi_con, connection_record):
     if isinstance(dbapi_con, sqlite3.Connection):
         cursor = dbapi_con.cursor()
-        cursor.execute("PRAGMA journal_mode=WAL;")
+        # Avoid WAL mode on Vercel's read-only filesystem
+        if not os.getenv("VERCEL"):
+            try:
+                cursor.execute("PRAGMA journal_mode=WAL;")
+            except Exception:
+                pass
         cursor.execute("PRAGMA foreign_keys=ON;")
         cursor.execute("PRAGMA busy_timeout=30000;")
         cursor.close()

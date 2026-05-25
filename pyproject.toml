@@ -1,0 +1,6 @@
+[tool.vercel]
+entrypoint = "python.web_dashboard:app"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
