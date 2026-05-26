@@ -1,13 +1,7 @@
 import os
 from flask import Flask, render_template, jsonify
-try:
-    from config import setup_logging, test_db_connection
-    from utils import fetch_data
-    from powerbi_integration import get_report_embed_info
-except ImportError:
-    from .config import setup_logging, test_db_connection
-    from .utils import fetch_data
-    from .powerbi_integration import get_report_embed_info
+from .config import setup_logging, test_db_connection
+from .utils import fetch_data
 
 logger = setup_logging("WebDashboard")
 
